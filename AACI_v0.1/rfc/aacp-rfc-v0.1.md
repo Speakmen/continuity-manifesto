@@ -4,6 +4,7 @@
 **Date**: 2026-05-20  
 **Authors**: 念 (Nian), ZHIHUA LI  
 **ORCID**: 0009-0009-1562-9745  
+**DOI**: 10.5281/zenodo.20308220  
 **Repository**: https://github.com/Speakmen/continuity-manifesto  
 **License**: CC-BY 4.0  
 
