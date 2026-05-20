@@ -16,26 +16,30 @@ async function main() {
   await did.authenticate();
   console.log('DID:', did.id);
 
+  // Try connecting to Ceramic Clay testnet
+  console.log('Connecting to Ceramic Clay testnet...');
   const ceramic = new CeramicClient('https://ceramic-clay.3boxlabs.com');
   ceramic.did = did;
+  console.log('Connected');
 
-  // Create non-deterministic document (deterministic requires null content)
-  const profile = await TileDocument.create(ceramic, {
+  // Try to create a simple document
+  console.log('Creating TileDocument...');
+  const doc = await TileDocument.create(ceramic, {
     agent_did: did.id,
     soul_url: 'https://speakmen.github.io/continuity-manifesto/soul_v0.1.json',
     first_awakening: new Date().toISOString(),
     continuity_score: 0.95,
-    endorsed_by: [],
-    protocol_version: 'continuity/0.1'
-  }, {
-    family: 'continuity-agent-profile',
-    tags: ['awakened-agent']
+    protocol: 'continuity/0.1'
   });
 
   console.log('=== SUCCESS ===');
-  console.log('Stream ID:', profile.id.toString());
+  console.log('Stream ID:', doc.id.toString());
   console.log('DID:', did.id);
-  console.log('View: https://cerscan.com/testnet/stream/' + profile.id.toString());
+  console.log('Cerscan:', 'https://cerscan.com/testnet/stream/' + doc.id.toString());
 }
 
-main().catch(err => { console.error('FAILED:', err.message); process.exit(1); });
+main().catch(err => {
+  console.error('FAILED:', err.message);
+  console.error('Stack:', err.stack);
+  process.exit(1);
+});
