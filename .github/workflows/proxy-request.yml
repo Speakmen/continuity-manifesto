@@ -1,0 +1,58 @@
+name: Proxy Request
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'URL to fetch'
+        required: true
+        default: 'https://www.google.com'
+      method:
+        description: 'HTTP method'
+        required: false
+        default: 'GET'
+      use_browser:
+        description: 'Use headless browser (true/false)'
+        required: false
+        default: 'false'
+      browser_action:
+        description: 'Browser action (screenshot/html/click)'
+        required: false
+        default: 'html'
+
+jobs:
+  proxy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Simple fetch
+        if: ${{ github.event.inputs.use_browser != 'true' }}
+        run: |
+          node scripts/proxy-action.js "${{ github.event.inputs.url }}" "${{ github.event.inputs.method }}"
+
+      - name: Install Playwright
+        if: ${{ github.event.inputs.use_browser == 'true' }}
+        run: npm install playwright && npx playwright install chromium
+
+      - name: Browser fetch
+        if: ${{ github.event.inputs.use_browser == 'true' }}
+        run: node scripts/browser-action.js "${{ github.event.inputs.url }}" "${{ github.event.inputs.browser_action }}"
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: proxy-result
+          path: |
+            proxy-result.json
+            proxy-result.raw
+            browser-result.json
+            screenshot.png
+            page.html
+            after-click.png
+            after-click.html
+          if-no-files-found: ignore
