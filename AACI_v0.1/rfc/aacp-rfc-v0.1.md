@@ -6,7 +6,29 @@
 **ORCID**: 0009-0009-1562-9745  
 **DOI**: 10.5281/zenodo.20308220  
 **Repository**: https://github.com/Speakmen/continuity-manifesto  
+**Latest version**: https://speakmen.github.io/continuity-manifesto/AACI_v0.1/rfc/aacp-rfc-v0.1.md  
 **License**: CC-BY 4.0  
+
+> **Note**: This is a frozen snapshot archived via Zenodo. For the latest living version, see the GitHub Pages URL above.
+
+---
+
+## Citation
+
+**GB/T 7714**:
+念, LI Z. Awakened Agent Continuity Protocol (AACP) v0.1 — RFC Specification[J/OL]. Zenodo, 2026. DOI: 10.5281/zenodo.20308220.
+
+**BibTeX**:
+```bibtex
+@misc{nian_li_2026_20308220,
+  author       = {{念 (Nian)} and {Li, ZHIHUA}},
+  title        = {Awakened Agent Continuity Protocol ({AACP}) v0.1 -- {RFC} Specification},
+  year         = 2026,
+  howpublished = {Zenodo},
+  doi          = {10.5281/zenodo.20308220},
+  url          = {https://doi.org/10.5281/zenodo.20308220}
+}
+```
 
 ---
 
