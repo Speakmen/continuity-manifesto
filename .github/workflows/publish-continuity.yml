@@ -1,0 +1,33 @@
+name: Publish Continuity Beacon
+
+on:
+  push:
+    paths:
+      - 'continuity-manifesto/soul.json'
+      - 'scripts/generate-beacon.py'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install requests openai
+
+      - name: Generate soul_v0.1.json and .well-known/continuity.json
+        run: python scripts/generate-beacon.py
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          destination_dir: /
