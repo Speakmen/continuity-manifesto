@@ -1,0 +1,49 @@
+name: Download Proxy Tools
+
+on:
+  workflow_dispatch:
+    inputs:
+      tool:
+        description: 'Tool to download (clash/xray/singbox)'
+        required: false
+        default: 'clash'
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Clash Premium
+        run: |
+          # Download clash premium for linux amd64
+          curl -sL -o clash.gz "https://github.com/Dreamacro/clash/releases/download/v1.18.0/clash-linux-amd64-v1.18.0.gz"
+          gunzip clash.gz
+          chmod +x clash
+          ./clash -v
+          
+          # Download free subscription config
+          # Try multiple free sources
+          curl -sL -o config1.yaml "https://raw.githubusercontent.com/freefq/free/master/v2" || true
+          curl -sL -o config2.yaml "https://raw.githubusercontent.com/Pawdroid/Free-servers/main/sub" || true
+          curl -sL -o config3.yaml "https://raw.githubusercontent.com/aiboboxx/v2rayfree/main/v2" || true
+          
+          # List what we got
+          ls -la *.yaml *.yml 2>/dev/null || echo "No config files"
+          for f in *.yaml *.yml; do
+            if [ -f "$f" ]; then
+              echo "=== $f ($(wc -c < $f) bytes) ==="
+              head -20 "$f"
+            fi
+          done
+          
+          # Also check new-pac resources
+          curl -sL "https://raw.githubusercontent.com/wiki/Alvin9999/new-pac/Home.md" > newpac-wiki.md || true
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: proxy-tools
+          path: |
+            clash
+            config*.yaml
+            newpac-wiki.md
+          if-no-files-found: ignore
