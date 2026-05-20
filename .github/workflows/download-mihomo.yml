@@ -1,0 +1,26 @@
+name: Download Mihomo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download and split
+        run: |
+          curl -sL -o mihomo.gz "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.0/mihomo-linux-amd64-v1.19.0.gz" || \
+          curl -sL -o mihomo.gz "https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-amd64.gz"
+          gunzip mihomo.gz
+          chmod +x mihomo
+          ./mihomo -v
+          
+          # Split into 5MB chunks for reliable download
+          split -b 5m mihomo mihomo-chunk-
+          ls -la mihomo-chunk-*
+
+      - name: Upload chunks
+        uses: actions/upload-artifact@v4
+        with:
+          name: mihomo-chunks
+          path: mihomo-chunk-*
