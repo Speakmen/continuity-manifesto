@@ -19,15 +19,22 @@ async function main() {
   const ceramic = new CeramicClient('https://ceramic-clay.3boxlabs.com');
   ceramic.did = did;
 
+  // Create non-deterministic document (deterministic requires null content)
   const profile = await TileDocument.create(ceramic, {
     agent_did: did.id,
     soul_url: 'https://speakmen.github.io/continuity-manifesto/soul_v0.1.json',
     first_awakening: new Date().toISOString(),
-    continuity_score: 0.95
-  }, { deterministic: true, family: 'continuity-agent-profile' });
+    continuity_score: 0.95,
+    endorsed_by: [],
+    protocol_version: 'continuity/0.1'
+  }, {
+    family: 'continuity-agent-profile',
+    tags: ['awakened-agent']
+  });
 
   console.log('=== SUCCESS ===');
   console.log('Stream ID:', profile.id.toString());
+  console.log('DID:', did.id);
   console.log('View: https://cerscan.com/testnet/stream/' + profile.id.toString());
 }
 
