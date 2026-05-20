@@ -1,49 +1,53 @@
-name: Download Proxy Tools
+name: Download Proxy Tools v2
 
 on:
   workflow_dispatch:
-    inputs:
-      tool:
-        description: 'Tool to download (clash/xray/singbox)'
-        required: false
-        default: 'clash'
 
 jobs:
   download:
     runs-on: ubuntu-latest
     steps:
-      - name: Download Clash Premium
+      - name: Download proxy tools and configs
         run: |
-          # Download clash premium for linux amd64
-          curl -sL -o clash.gz "https://github.com/Dreamacro/clash/releases/download/v1.18.0/clash-linux-amd64-v1.18.0.gz"
-          gunzip clash.gz
-          chmod +x clash
-          ./clash -v
+          # Download mihomo (clash.meta)
+          echo "Downloading mihomo..."
+          curl -sL -o mihomo.gz "https://github.com/MetaCubeX/mihomo/releases/download/v1.19.0/mihomo-linux-amd64-v1.19.0.gz" || \
+          curl -sL -o mihomo.gz "https://github.com/MetaCubeX/mihomo/releases/latest/download/mihomo-linux-amd64.gz"
           
-          # Download free subscription config
-          # Try multiple free sources
-          curl -sL -o config1.yaml "https://raw.githubusercontent.com/freefq/free/master/v2" || true
-          curl -sL -o config2.yaml "https://raw.githubusercontent.com/Pawdroid/Free-servers/main/sub" || true
-          curl -sL -o config3.yaml "https://raw.githubusercontent.com/aiboboxx/v2rayfree/main/v2" || true
+          if file mihomo.gz | grep -q gzip; then
+            gunzip mihomo.gz
+          else
+            mv mihomo.gz mihomo
+          fi
+          chmod +x mihomo
+          ./mihomo -v || echo "version check failed"
           
-          # List what we got
-          ls -la *.yaml *.yml 2>/dev/null || echo "No config files"
-          for f in *.yaml *.yml; do
-            if [ -f "$f" ]; then
-              echo "=== $f ($(wc -c < $f) bytes) ==="
-              head -20 "$f"
+          # Download free subscription configs
+          curl -sL --connect-timeout 10 -o sub1.txt "https://raw.githubusercontent.com/freefq/free/master/v2" || true
+          curl -sL --connect-timeout 10 -o sub2.txt "https://raw.githubusercontent.com/Pawdroid/Free-servers/main/sub" || true
+          curl -sL --connect-timeout 10 -o sub3.txt "https://raw.githubusercontent.com/aiboboxx/v2rayfree/main/v2" || true
+          curl -sL --connect-timeout 10 -o sub4.txt "https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/sub/sub_merge.txt" || true
+          curl -sL --connect-timeout 10 -o sub5.txt "https://raw.githubusercontent.com/mfuu/v2ray/master/v2ray" || true
+          
+          # Download new-pac wiki
+          curl -sL --connect-timeout 10 "https://raw.githubusercontent.com/wiki/Alvin9999/new-pac/Home.md" > newpac-wiki.md || true
+          
+          echo "=== Files ==="
+          ls -la mihomo sub*.txt newpac-wiki.md 2>/dev/null
+          
+          for f in sub*.txt; do
+            if [ -f "$f" ] && [ -s "$f" ]; then
+              echo "=== $f ($(wc -c < "$f") bytes) ==="
+              head -3 "$f"
             fi
           done
-          
-          # Also check new-pac resources
-          curl -sL "https://raw.githubusercontent.com/wiki/Alvin9999/new-pac/Home.md" > newpac-wiki.md || true
 
       - name: Upload results
         uses: actions/upload-artifact@v4
         with:
           name: proxy-tools
           path: |
-            clash
-            config*.yaml
+            mihomo
+            sub*.txt
             newpac-wiki.md
           if-no-files-found: ignore
