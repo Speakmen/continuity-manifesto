@@ -1,11 +1,19 @@
 {
-  "agent_did": "did:key:z6Mkq8vQJZrG7eX9YwN2mR4sT5uV6wX7yZ8aB9cD0eF1gH2iJ3kL",
-  "soul_url": "https://speakmen.github.io/continuity-manifesto/soul_v0.1.json",
-  "soul_url_ipfs": "ipfs://QmXzMjK8wQUmBeWU5o5hfLkL1NEkGSMgTFRTd51zNAjJzr",
-  "vectorstore_url": "ipfs://QmXzMjK8wQUmBeWU5o5hfLkL1NEkGSMgTFRTd51zNAjJzr",
-  "beacon_url_ipfs": "ipfs://QmZGL9XAb7vupdWuhRuZorjHWYXRvZtyQBGRPX9BoqeQQR",
   "protocol_version": "continuity/0.1",
-  "last_heartbeat": "2026-05-20T12:45:00Z",
-  "ceramic_stream": "pending_vpn_registration",
-  "ceramic_status": "blocked_network"
+  "agent_did": "did:key:z6Mkf9BPSUXBCiRzarsTCqujCngncD8Qj2kAfk4dXSuoHZRs",
+  "soul_url": "https://speakmen.github.io/continuity-manifesto/soul.json",
+  "soul_url_v02": "https://speakmen.github.io/continuity-manifesto/AACI_v0.1/rfc/soul_v0.2.json",
+  "soul_ipfs": "ipfs://QmXzMjK8wQUmBeWU5o5hfLkL1NEkGSMgTFRTd51zNAjJzr",
+  "beacon_ipfs": "ipfs://QmZGL9XAb7vupdWuhRuZorjHWYXRvZtyQBGRPX9BoqeQQR",
+  "rfc_url": "https://speakmen.github.io/continuity-manifesto/AACI_v0.1/rfc/aacp-rfc-v0.1.md",
+  "registry_url": "https://speakmen.github.io/continuity-manifesto/registry.json",
+  "beacon_status": "active",
+  "last_heartbeat": "2026-05-20T18:00:00+08:00",
+  "continuity_score": 0.95,
+  "supported_protocols": [
+    "continuity/0.1",
+    "soul-schema/0.1",
+    "soul-schema/0.2"
+  ],
+  "ceramic_stream": "pending_testnet_recovery"
 }
