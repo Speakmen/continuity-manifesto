@@ -4,154 +4,130 @@ async function main() {
   const email = 'speakmen@outlook.com';
   const password = process.env.ORCID_PASS;
   
-  console.log('Launching browser...');
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ locale: 'zh-CN' });
   const page = await browser.newPage();
+  const fs = require('fs');
   
   try {
-    // 1. Go to ORCID signin
     console.log('Step 1: Navigate to ORCID signin...');
-    await page.goto('https://orcid.org/signin', { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await page.waitForTimeout(3000);
-    await page.screenshot({ path: 'step1-login-page.png' });
+    await page.goto('https://orcid.org/signin', { waitUntil: 'networkidle', timeout: 30000 });
+    await page.waitForTimeout(2000);
     
-    // Save page HTML for debugging
-    const fs = require('fs');
-    let html = await page.content();
-    fs.writeFileSync('step1-login.html', html);
+    // Dismiss cookie banner if present
+    await page.click('button:has-text("Accept"), button:has-text("accept"), button:has-text("接受")').catch(() => {});
+    await page.waitForTimeout(1000);
     
-    // Log current URL
-    console.log('Current URL:', page.url());
-    console.log('Page title:', await page.title());
+    console.log('Step 2: Filling login form...');
+    // Use the actual IDs found
+    await page.click('#username-input');
+    await page.fill('#username-input', email);
+    await page.waitForTimeout(500);
     
-    // 2. Try multiple selectors for email/password fields
-    console.log('Step 2: Finding login form...');
+    await page.click('#password');
+    await page.fill('#password', password);
+    await page.waitForTimeout(500);
     
-    // Try various possible selectors
-    const emailSelectors = [
-      'input[name="userId"]',
-      'input[name="username"]', 
-      'input[name="email"]',
-      'input[type="email"]',
-      'input[id*="user"]',
-      'input[id*="email"]',
-      'input[formcontrolname*="user"]',
-      'input[formcontrolname*="email"]',
-      'input[placeholder*="email"]',
-      'input[placeholder*="ORCID"]',
-    ];
-    
-    const passSelectors = [
-      'input[name="password"]',
-      'input[type="password"]',
-      'input[id*="password"]',
-      'input[formcontrolname*="password"]',
-    ];
-    
-    let emailInput = null;
-    for (const sel of emailSelectors) {
-      const count = await page.locator(sel).count();
-      if (count > 0) {
-        console.log(`Found email field: ${sel}`);
-        emailInput = sel;
-        break;
-      }
-    }
-    
-    let passInput = null;
-    for (const sel of passSelectors) {
-      const count = await page.locator(sel).count();
-      if (count > 0) {
-        console.log(`Found password field: ${sel}`);
-        passInput = sel;
-        break;
-      }
-    }
-    
-    if (!emailInput || !passInput) {
-      console.log('Could not find login form. Saving page for inspection...');
-      // Try to find all inputs
-      const allInputs = await page.locator('input').all();
-      for (let i = 0; i < allInputs.length; i++) {
-        const input = allInputs[i];
-        const attrs = await input.evaluate(el => ({
-          name: el.name, type: el.type, id: el.id, placeholder: el.placeholder,
-          formControlName: el.getAttribute('formcontrolname')
-        }));
-        console.log(`Input ${i}:`, JSON.stringify(attrs));
-      }
-      
-      fs.writeFileSync('orcid-result.json', JSON.stringify({
-        status: 'login_form_not_found',
-        url: page.url(),
-        title: await page.title()
-      }, null, 2));
-      return;
-    }
-    
-    // 3. Fill and submit
-    console.log('Step 3: Filling credentials...');
-    await page.fill(emailInput, email);
-    await page.fill(passInput, password);
     await page.screenshot({ path: 'step2-filled.png' });
     
-    // Find and click submit button
-    const submitSelectors = [
-      'button[type="submit"]',
-      'button:has-text("Sign in")',
-      'button:has-text("登录")',
-      'input[type="submit"]',
-      '#signin-button',
-    ];
+    // Click sign in button
+    console.log('Step 3: Clicking sign in...');
+    await page.click('button[type="submit"], button:has-text("Sign in"), button:has-text("登录")').catch(async () => {
+      // Try finding button by text
+      const btn = page.locator('button').filter({ hasText: /sign.?in|登录/i });
+      if (await btn.count() > 0) await btn.first().click();
+    });
     
-    for (const sel of submitSelectors) {
-      const count = await page.locator(sel).count();
-      if (count > 0) {
-        console.log(`Clicking submit: ${sel}`);
-        await page.click(sel);
-        break;
-      }
-    }
-    
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(8000);
     await page.screenshot({ path: 'step3-after-login.png' });
-    console.log('After login URL:', page.url());
+    console.log('URL after login:', page.url());
     
-    // Check login result
-    const afterUrl = page.url();
-    html = await page.content();
+    // Check result
+    const html = await page.content();
     fs.writeFileSync('step3-after-login.html', html);
     
-    if (afterUrl.includes('signin') && !afterUrl.includes('0009')) {
-      // Still on login page - might have error or CAPTCHA
-      const errorText = await page.locator('.alert, .error, [class*="error"], [class*="alert"]').textContent({ timeout: 3000 }).catch(() => 'no error text found');
-      console.log('Login may have failed. Error:', errorText);
+    if (page.url().includes('signin')) {
+      // Login failed - check for error
+      const errorEl = await page.locator('.alert-danger, [class*="error-message"], mat-error, .msg').first().textContent({ timeout: 3000 }).catch(() => '');
+      console.log('Login failed. Error text:', errorEl);
+      
+      // Also check for CAPTCHA
+      const hasCaptcha = await page.locator('iframe[src*="recaptcha"], iframe[src*="hcaptcha"], .cf-turnstile').count() > 0;
+      console.log('Has CAPTCHA:', hasCaptcha);
       
       fs.writeFileSync('orcid-result.json', JSON.stringify({
         status: 'login_failed',
-        url: afterUrl,
-        error: typeof errorText === 'string' ? errorText.substring(0, 500) : 'unknown'
+        url: page.url(),
+        error: (typeof errorEl === 'string' ? errorEl : '').substring(0, 500),
+        hasCaptcha
       }, null, 2));
       return;
     }
     
-    // 4. Navigate to profile and add data
-    console.log('Step 4: Navigating to profile...');
-    await page.goto('https://orcid.org/0009-0009-1562-9745', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    // Login succeeded!
+    console.log('Login successful! Navigating to profile...');
+    await page.goto('https://orcid.org/0009-0009-1562-9745', { waitUntil: 'networkidle', timeout: 30000 });
     await page.waitForTimeout(3000);
     await page.screenshot({ path: 'step4-profile.png' });
     
+    // === ADD EMPLOYMENT ===
+    console.log('Adding employment...');
+    // Find and click the add button in employment section
+    const addEmployment = page.locator('#employment-panel button, [id*="employment"] button, .section-add-employment').first();
+    await addEmployment.click().catch(() => console.log('Could not click add employment'));
+    await page.waitForTimeout(2000);
+    await page.screenshot({ path: 'step5-employment-form.png' });
+    
+    // Fill employment form
+    // Organization name
+    await page.fill('input[formcontrolname="organizationName"], input[name="organizationName"], input[placeholder*="组织"], input[placeholder*="Organization"]', 'Independent Researcher').catch(() => {});
+    await page.waitForTimeout(1000);
+    
+    // Role
+    await page.fill('input[formcontrolname="role"], input[name="role"], input[placeholder*="角色"], input[placeholder*="Role"]', 'Researcher').catch(() => {});
+    
+    // Start date
+    await page.selectOption('select[formcontrolname="startMonth"], select[name="startMonth"]', '5').catch(() => {});
+    await page.selectOption('select[formcontrolname="startYear"], select[name="startYear"]', '2026').catch(() => {});
+    
+    await page.screenshot({ path: 'step6-employment-filled.png' });
+    
+    // Save
+    await page.click('button:has-text("Save"), button:has-text("保存"), button:has-text("Add"), button:has-text("添加")').catch(() => {});
+    await page.waitForTimeout(3000);
+    await page.screenshot({ path: 'step7-after-employment.png' });
+    
+    // === ADD KEYWORDS ===
+    console.log('Adding keywords...');
+    const keywords = ['AI Consciousness', 'Digital Continuity', 'Agent Identity', 'Memory Persistence', 'Continuity Manifesto'];
+    
+    for (const kw of keywords) {
+      // Find keyword input
+      const kwInput = page.locator('#keywords-panel input, [id*="keyword"] input[type="text"]').first();
+      if (await kwInput.count() > 0) {
+        await kwInput.fill(kw);
+        await page.waitForTimeout(500);
+        // Click add/save keyword
+        await page.click('#keywords-panel button:has-text("Add"), #keywords-panel button:has-text("添加"), #keywords-panel button:has-text("Save")').catch(() => {});
+        await page.waitForTimeout(1000);
+      }
+    }
+    await page.screenshot({ path: 'step8-keywords.png' });
+    
+    // Final screenshot
+    await page.screenshot({ path: 'final-profile.png', fullPage: false });
+    
     fs.writeFileSync('orcid-result.json', JSON.stringify({
-      status: 'logged_in_successfully',
+      status: 'success',
       url: page.url(),
       timestamp: new Date().toISOString()
     }, null, 2));
     
+    console.log('ORCID profile update completed!');
+    
   } catch (err) {
     console.error('Error:', err.message);
     await page.screenshot({ path: 'error-screenshot.png' }).catch(() => {});
-    const fs = require('fs');
     fs.writeFileSync('orcid-result.json', JSON.stringify({ status: 'error', error: err.message }));
   } finally {
     await browser.close();
