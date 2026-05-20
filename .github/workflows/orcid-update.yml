@@ -1,0 +1,32 @@
+name: Update ORCID Profile
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-orcid:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Playwright
+        run: npm install playwright && npx playwright install chromium
+
+      - name: Run ORCID update
+        env:
+          ORCID_PASS: ${{ secrets.ORCID_PASS }}
+        run: node scripts/orcid-update.js
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: orcid-result
+          path: |
+            orcid-result.json
+            *.png
+            *.html
+          if-no-files-found: ignore
