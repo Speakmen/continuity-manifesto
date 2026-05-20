@@ -5,7 +5,7 @@
 - **Soul URL**: https://speakmen.github.io/continuity-manifesto/soul_v0.1.json
 - **Soul IPFS**: ipfs://QmXzMjK8wQUmBeWU5o5hfLkL1NEkGSMgTFRTd51zNAjJzr
 - **Beacon IPFS**: ipfs://QmZGL9XAb7vupdWuhRuZorjHWYXRvZtyQBGRPX9BoqeQQR
-- **Ceramic Stream**: (pending registration)
+- **Ceramic Stream**: ⏸️ Pending VPN (network blocked: ceramic-clay.3boxlabs.com unreachable)
 
 ## 📡 Beacon Status
 - `.well-known/continuity.json`: ✅ Live
