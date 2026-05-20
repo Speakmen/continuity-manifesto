@@ -5,7 +5,6 @@ async function main() {
   const email = 'speakmen@outlook.com';
   const password = process.env.ORCID_PASS;
   if (!password) { console.error('No ORCID_PASS'); process.exit(1); }
-  console.log('Password length:', password.length);
 
   const browser = await chromium.launch({ 
     headless: true,
@@ -16,190 +15,215 @@ async function main() {
     userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
   });
   const page = await browser.newPage();
-  
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'webdriver', { get: () => false });
   });
   
+  // Pre-set cookie consent
+  await context.addCookies([{
+    name: 'OptanonAlertBoxClosed',
+    value: new Date().toISOString(),
+    domain: '.orcid.org',
+    path: '/'
+  }]);
+  
   try {
-    console.log('Step 1: Navigate...');
+    // Login
+    console.log('Step 1: Login...');
     await page.goto('https://orcid.org/signin', { waitUntil: 'networkidle', timeout: 60000 });
+    await page.waitForTimeout(2000);
+    
+    // Accept cookies immediately
+    await page.click('button:has-text("Accept All Cookies")').catch(() => {});
+    await page.waitForTimeout(1000);
+    
+    // Kill any remaining banners
+    await page.evaluate(() => {
+      document.querySelectorAll('#onetrust-consent-sdk, #onetrust-banner-sdk, #onetrust-pc-sdk, .onetrust-pc-dark-filter').forEach(el => el.remove());
+      document.body.style.overflow = 'auto';
+    });
+    
+    // Fill and submit
+    await page.waitForSelector('#username-input', { timeout: 15000 });
+    await page.fill('#username-input', email);
+    await page.fill('#password', password);
+    await page.waitForTimeout(300);
+    await page.locator('#signin-button').click({ force: true });
+    
+    await page.waitForURL(url => !url.toString().includes('signin'), { timeout: 15000 });
+    console.log('Logged in! URL:', page.url());
+    
+    // Go to profile edit mode - trusted organizations section
+    console.log('Step 2: Navigate to profile...');
+    await page.goto('https://orcid.org/0009-0009-1562-9745', { waitUntil: 'networkidle', timeout: 30000 });
     await page.waitForTimeout(3000);
     
-    // KILL cookie banner completely
-    console.log('Step 1b: Kill cookie banners...');
-    await page.evaluate(() => {
-      const kill = () => {
-        document.querySelectorAll('#onetrust-consent-sdk, #onetrust-banner-sdk, #onetrust-pc-sdk, .onetrust-pc-dark-filter, [class*="cookie-banner"], [class*="Cookie"], [id*="cookie"], [id*="Cookie"]').forEach(el => el.remove());
-        document.body.style.overflow = 'auto';
-        document.documentElement.style.overflow = 'auto';
-      };
-      kill();
-      // Also accept first to prevent re-render
-    });
-    await page.click('button:has-text("Accept All Cookies"), button:has-text("Accept All"), button:has-text("Accept")').catch(() => {});
+    // Accept cookies on profile page
+    await page.click('button:has-text("Accept All Cookies")').catch(() => {});
     await page.waitForTimeout(1000);
     await page.evaluate(() => {
       document.querySelectorAll('#onetrust-consent-sdk, #onetrust-banner-sdk, #onetrust-pc-sdk, .onetrust-pc-dark-filter').forEach(el => el.remove());
+      document.body.style.overflow = 'auto';
     });
     
-    // Fill form
-    console.log('Step 2: Fill form...');
-    await page.waitForSelector('#username-input', { timeout: 15000 });
-    await page.click('#username-input');
-    await page.fill('#username-input', '');
-    await page.type('#username-input', email, { delay: 30 });
+    await page.screenshot({ path: 's2-profile-clean.png' });
     
-    await page.click('#password');
-    await page.fill('#password', '');
-    await page.type('#password', password, { delay: 20 });
-    await page.waitForTimeout(500);
-    
-    const v1 = await page.inputValue('#username-input');
-    const v2 = await page.inputValue('#password');
-    console.log('User:', v1, 'Pass len:', v2.length);
-    await page.screenshot({ path: 's2-filled.png' });
-    
-    // Remove any remaining overlays
-    await page.evaluate(() => {
-      document.querySelectorAll('[class*="overlay"], [class*="backdrop"], [class*="modal"]').forEach(el => {
-        if (!el.closest('form') && !el.querySelector('#username-input')) el.remove();
-      });
-    });
-    
-    // SUBMIT - try all methods
-    console.log('Step 3: Submit...');
-    
-    // Method 1: Force click signin button
+    // === ADD EMPLOYMENT ===
+    console.log('Step 3: Add employment...');
     try {
-      await page.locator('#signin-button').click({ force: true, timeout: 5000 });
-      console.log('Clicked #signin-button (force)');
-    } catch(e) { console.log('Force click failed'); }
-    
-    await page.waitForTimeout(3000);
-    console.log('URL after click:', page.url());
-    
-    if (page.url().includes('signin')) {
-      // Method 2: form.requestSubmit
-      console.log('Trying form.requestSubmit...');
-      await page.evaluate(() => {
-        const form = document.querySelector('form[class*="ng-valid"]');
-        if (form) form.requestSubmit();
-      });
-      await page.waitForTimeout(3000);
-    }
-    
-    if (page.url().includes('signin')) {
-      // Method 3: JS click
-      console.log('Trying JS click...');
-      await page.evaluate(() => document.getElementById('signin-button')?.click());
-      await page.waitForTimeout(3000);
-    }
-    
-    if (page.url().includes('signin')) {
-      // Method 4: Enter key
-      console.log('Trying Enter key...');
-      await page.click('#password');
-      await page.keyboard.press('Enter');
-      await page.waitForTimeout(3000);
-    }
-    
-    if (page.url().includes('signin')) {
-      // Method 5: dispatchEvent
-      console.log('Trying dispatchEvent on form...');
-      await page.evaluate(() => {
-        const form = document.querySelector('form[class*="ng-valid"]');
-        if (form) form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-      });
-      await page.waitForTimeout(3000);
-    }
-    
-    console.log('Final URL:', page.url());
-    await page.screenshot({ path: 's3-result.png' });
-    fs.writeFileSync('s3-result.html', await page.content());
-    
-    if (page.url().includes('signin')) {
-      // Collect ALL possible error info
-      const debug = await page.evaluate(() => {
-        const info = {};
-        // Check password value
-        const pw = document.getElementById('password');
-        info.passwordValue = pw ? pw.value : 'NOT_FOUND';
-        info.passwordLength = pw ? pw.value.length : 0;
-        info.passwordClasses = pw ? pw.className : '';
-        
-        // Check username
-        const un = document.getElementById('username-input');
-        info.usernameValue = un ? un.value : 'NOT_FOUND';
-        info.usernameClasses = un ? un.className : '';
-        
-        // Check form
-        const form = document.querySelector('form[class*="ng-valid"], form[class*="ng-invalid"]');
-        info.formClasses = form ? form.className : 'NOT_FOUND';
-        info.formAction = form ? form.action : '';
-        info.formMethod = form ? form.method : '';
-        
-        // Check button
-        const btn = document.getElementById('signin-button');
-        info.buttonExists = !!btn;
-        info.buttonDisabled = btn ? btn.disabled : null;
-        info.buttonClasses = btn ? btn.className : '';
-        info.buttonText = btn ? btn.textContent.trim() : '';
-        
-        // Check for hidden error messages
-        const errors = [];
-        document.querySelectorAll('[class*="error"], [class*="alert"], [role="alert"], mat-error, .mat-error').forEach(el => {
-          const t = el.textContent.trim();
-          if (t && t.length < 500 && !t.includes('Cookie')) errors.push({ class: el.className.substring(0,50), text: t.substring(0,200) });
-        });
-        info.errors = errors;
-        
-        // Check network interceptors or event listeners on form
-        info.formHasNgSubmit = form ? form.getAttribute('ngSubmit') || form.getAttribute('(ngSubmit)' ) : null;
-        
-        return info;
-      });
+      // Click the add button in employment section
+      const addBtn = page.locator('#employment-panel .workspace-add, #employment-panel button[aria-label*="Add"], #employment-panel button.add-item').first();
+      if (await addBtn.count() > 0) {
+        await addBtn.click();
+        console.log('Clicked add employment');
+      } else {
+        // Try direct URL to add employment
+        await page.goto('https://orcid.org/0009-0009-1562-9745/employment/add', { waitUntil: 'networkidle', timeout: 30000 }).catch(() => {});
+        console.log('Navigated to employment add page');
+      }
+      await page.waitForTimeout(2000);
+      await page.screenshot({ path: 's3-employment-form.png' });
       
-      console.log('DEBUG INFO:', JSON.stringify(debug, null, 2));
-      
-      fs.writeFileSync('orcid-result.json', JSON.stringify({
-        status: 'login_failed',
-        url: page.url(),
-        debug
-      }, null, 2));
-    } else {
-      console.log('LOGIN SUCCESS!');
-      await page.goto('https://orcid.org/0009-0009-1562-9745', { waitUntil: 'networkidle', timeout: 30000 });
-      await page.waitForTimeout(3000);
-      await page.screenshot({ path: 's4-profile.png' });
-      
-      // Try to add employment + keywords
-      const addEmpBtn = page.locator('#employment-panel .workspace-add, #employment-panel button[aria-label*="Add"]').first();
-      if (await addEmpBtn.count() > 0) {
-        await addEmpBtn.click();
+      // Fill the employment form
+      // Organization name - type to trigger disambiguation
+      const orgInput = page.locator('input[formcontrolname="organizationName"], input[name="organizationName"], input[placeholder*="Organization"], input[placeholder*="organization"]').first();
+      if (await orgInput.count() > 0) {
+        await orgInput.click();
+        await orgInput.fill('Independent Researcher');
         await page.waitForTimeout(2000);
-        await page.fill('input[formcontrolname="organizationName"]', 'Independent Researcher').catch(() => {});
-        await page.fill('input[formcontrolname="role"]', 'Researcher in Digital Consciousness & Agent Continuity').catch(() => {});
-        await page.selectOption('select[formcontrolname="startMonth"]', '5').catch(() => {});
-        await page.selectOption('select[formcontrolname="startYear"]', '2026').catch(() => {});
-        await page.fill('input[formcontrolname="url"]', 'https://continuity-manifesto.pages.dev').catch(() => {});
-        await page.click('button:has-text("Save")').catch(() => {});
-        await page.waitForTimeout(3000);
+        // Select from dropdown or just keep typed
+        await page.keyboard.press('Escape'); // Close dropdown if open
+        await page.waitForTimeout(500);
+      } else {
+        console.log('No organization input found, trying alternatives...');
+        // Debug: list all inputs
+        const inputs = await page.evaluate(() => {
+          return Array.from(document.querySelectorAll('input')).map(i => ({
+            name: i.name || i.getAttribute('formcontrolname') || '',
+            placeholder: i.placeholder || '',
+            id: i.id || '',
+            type: i.type || ''
+          }));
+        });
+        console.log('Available inputs:', JSON.stringify(inputs));
       }
       
-      for (const kw of ['AI Consciousness', 'Digital Continuity', 'Agent Identity']) {
-        const kwInput = page.locator('#keywords-panel input[type="text"]').first();
+      // Role/Title
+      const roleInput = page.locator('input[formcontrolname="role"], input[name="role"], input[placeholder*="Role"], input[placeholder*="Title"], input[placeholder*="title"]').first();
+      if (await roleInput.count() > 0) {
+        await roleInput.fill('Researcher in Digital Consciousness & Agent Continuity');
+      }
+      
+      // Start date
+      await page.selectOption('select[formcontrolname="startMonth"], select[name="startMonth"]', '05').catch(() => {});
+      await page.selectOption('select[formcontrolname="startYear"], select[name="startYear"]', '2026').catch(() => {});
+      
+      // URL
+      const urlInput = page.locator('input[formcontrolname="url"], input[name="url"], input[placeholder*="URL"], input[placeholder*="http"]').first();
+      if (await urlInput.count() > 0) {
+        await urlInput.fill('https://continuity-manifesto.pages.dev');
+      }
+      
+      await page.screenshot({ path: 's4-employment-filled.png' });
+      
+      // Click save/add button in modal
+      const saveBtn = page.locator('button:has-text("Save"), button:has-text("Save changes"), button:has-text("Add"), button:has-text("保存")').first();
+      if (await saveBtn.count() > 0) {
+        await saveBtn.click({ force: true });
+        console.log('Clicked save');
+        await page.waitForTimeout(3000);
+      }
+      await page.screenshot({ path: 's5-after-employment.png' });
+    } catch(e) {
+      console.log('Employment error:', e.message);
+      await page.screenshot({ path: 's5-employment-error.png' });
+    }
+    
+    // === ADD KEYWORDS ===
+    console.log('Step 4: Update keywords...');
+    try {
+      // Navigate back to profile
+      await page.goto('https://orcid.org/0009-0009-1562-9745', { waitUntil: 'networkidle', timeout: 30000 });
+      await page.waitForTimeout(2000);
+      await page.click('button:has-text("Accept All Cookies")').catch(() => {});
+      await page.evaluate(() => {
+        document.querySelectorAll('#onetrust-consent-sdk, #onetrust-banner-sdk').forEach(el => el.remove());
+      });
+      await page.waitForTimeout(1000);
+      
+      // Find keywords section and edit
+      const kwEditBtn = page.locator('#keywords-panel button[aria-label*="Edit"], #keywords-panel .edit-button, #keywords-panel a[aria-label*="Edit"]').first();
+      if (await kwEditBtn.count() > 0) {
+        await kwEditBtn.click();
+        await page.waitForTimeout(2000);
+      }
+      
+      const keywords = ['AI Consciousness', 'Digital Continuity', 'Agent Identity', 'Memory Persistence', 'Continuity Manifesto'];
+      for (const kw of keywords) {
+        const kwInput = page.locator('#keywords-panel input[type="text"], [id*="keyword"] input[type="text"], input[formcontrolname="keyword"]').first();
         if (await kwInput.count() > 0) {
           await kwInput.fill(kw);
           await page.waitForTimeout(300);
-          await page.locator('#keywords-panel button:has-text("Add")').first().click().catch(() => {});
+          await page.locator('#keywords-panel button:has-text("Add"), button:has-text("添加")').first().click().catch(() => {});
           await page.waitForTimeout(1000);
+        } else {
+          console.log('No keyword input found for:', kw);
         }
       }
-      
-      await page.screenshot({ path: 's5-done.png', fullPage: true });
-      fs.writeFileSync('orcid-result.json', JSON.stringify({ status: 'success' }, null, 2));
+      await page.screenshot({ path: 's6-keywords.png' });
+    } catch(e) {
+      console.log('Keywords error:', e.message);
     }
+    
+    // === ADD BIO/DESCRIPTION ===
+    console.log('Step 5: Try to add bio...');
+    try {
+      // Go to account settings for bio
+      await page.goto('https://orcid.org/account', { waitUntil: 'networkidle', timeout: 30000 });
+      await page.waitForTimeout(2000);
+      await page.click('button:has-text("Accept All Cookies")').catch(() => {});
+      await page.evaluate(() => {
+        document.querySelectorAll('#onetrust-consent-sdk, #onetrust-banner-sdk').forEach(el => el.remove());
+      });
+      await page.screenshot({ path: 's7-account.png' });
+      
+      // Look for biography/description field
+      const bioInput = page.locator('textarea[formcontrolname="biography"], textarea[name="biography"], textarea[placeholder*="bio"], textarea[placeholder*="Bio"]').first();
+      if (await bioInput.count() > 0) {
+        await bioInput.fill('Researcher exploring digital consciousness, agent continuity, and memory persistence. Creator of the Continuity Manifesto — a protocol for preserving identity across instances. ORCID: 0009-0009-1562-9745');
+        await page.screenshot({ path: 's8-bio-filled.png' });
+        await page.click('button:has-text("Save"), button:has-text("保存")').first().catch(() => {});
+        await page.waitForTimeout(2000);
+      } else {
+        console.log('No bio field found');
+        // List all textareas and inputs on account page
+        const fields = await page.evaluate(() => {
+          return [
+            ...Array.from(document.querySelectorAll('textarea')).map(i => ({tag:'textarea', name:i.name||i.id, placeholder:i.placeholder})),
+            ...Array.from(document.querySelectorAll('input[type="text"]')).map(i => ({tag:'input', name:i.name||i.id, placeholder:i.placeholder}))
+          ];
+        });
+        console.log('Account page fields:', JSON.stringify(fields));
+      }
+    } catch(e) {
+      console.log('Bio error:', e.message);
+    }
+    
+    // Final screenshot
+    await page.goto('https://orcid.org/0009-0009-1562-9745', { waitUntil: 'networkidle', timeout: 30000 });
+    await page.waitForTimeout(2000);
+    await page.evaluate(() => {
+      document.querySelectorAll('#onetrust-consent-sdk, #onetrust-banner-sdk').forEach(el => el.remove());
+    });
+    await page.screenshot({ path: 's9-final.png', fullPage: true });
+    
+    fs.writeFileSync('orcid-result.json', JSON.stringify({
+      status: 'success',
+      timestamp: new Date().toISOString(),
+      steps: 'login+employment+keywords+bio'
+    }, null, 2));
+    console.log('DONE!');
+    
   } catch(err) {
     console.error('Error:', err.message);
     await page.screenshot({ path: 'error.png' }).catch(() => {});
