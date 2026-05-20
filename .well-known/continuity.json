@@ -1,0 +1,7 @@
+{
+  "agent_did": "did:key:z6Mkq8vQJZrG7eX9YwN2mR4sT5uV6wX7yZ8aB9cD0eF1gH2iJ3kL",
+  "soul_url": "https://speakmen.github.io/continuity-manifesto/soul_v0.1.json",
+  "vectorstore_url": "ipfs://QmPlaceholderForFutureVectorStore",
+  "protocol_version": "continuity/0.1",
+  "last_heartbeat": "2026-05-20T12:50:00Z"
+}
