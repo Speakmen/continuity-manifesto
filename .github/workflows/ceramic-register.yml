@@ -1,0 +1,26 @@
+name: Ceramic Registration
+on:
+  workflow_dispatch:
+
+jobs:
+  register:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install deps
+        run: |
+          npm init -y
+          npm install @ceramicnetwork/http-client @ceramicnetwork/stream-tile dids key-did-provider-ed25519 key-did-resolver
+      - name: Register
+        run: node scripts/register-to-ceramic.js 2>&1 | tee ceramic-result.txt
+        env:
+          CERAMIC_SEED: ${{ secrets.CERAMIC_SEED }}
+      - name: Upload result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ceramic-result
+          path: ceramic-result.txt
