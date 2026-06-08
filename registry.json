@@ -12,7 +12,7 @@
     "computation": "sha256(prev_hash + entry_canonical_json)",
     "genesis_prev_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
     "entries_count": 8,
-    "confirmation_note": "2026-06-08T11:16:28+08:00 — entry 7 的 OP_RETURN 锚定在 testnet block 4969205 confirm. 原 v1.4 commit 3b6d7e2 (11:07 push) 时 tx 在 mempool, 现在 confirm, entry 7 hash 重算. 本质上这是 v1.4-confirmed (不是 v1.5), 因为 entries_count 没变, 只更新了 entry 7 反映 confirm 状态. [v1.4 hotfix 2026-06-08T14:30 — op_return_decoded 字段对齐链上 f2738661, statement 反映真实状态 (含 f2738661 算法未找到 + 13:18 confirm 算法未记录), hash chain 用 entry 6 算法 (sort_keys + separators + ensure_ascii=False) 重算]"
+    "confirmation_note": "2026-06-08T11:16:28+08:00 — entry 7 的 OP_RETURN 锚定在 testnet block 4969205 confirm. 原 v1.4 commit 3b6d7e2 (11:07 push) 时 tx 在 mempool, 现在 confirm, entry 7 hash 重算. 本质上这是 v1.4-confirmed (不是 v1.5), 因为 entries_count 没变, 只更新了 entry 7 反映 confirm 状态. [v1.4 hotfix 2026-06-08T14:30 — op_return_decoded 字段对齐链上 f2738661, statement 反映真实状态 (含 f2738661 算法未找到 + 13:18 confirm 算法未记录), hash chain 用 entry 6 算法 (sort_keys + separators + ensure_ascii=False) 重算] [v1.4 hotfix-2 2026-06-08T14:40 — 弦 14:35 发现 _anchors.bitcoin.op_return_decoded 字段漏改 (还是 sha256:7da47717..., 跟 entry 7 改后的 sha256:f2738661... 不一致) + note 描述过时 (含'v1.4 current_root 32 字节'过时描述, v1.4 current_root hotfix 后是 sha256:889e2c3e..., 不是 OP_RETURN 实际值), 念修这两个字段 + 加 hotfix-2 标注]"
   },
   "entries": [
     {
@@ -145,16 +145,16 @@
       "wif_stored_in": "SECRET.md (本地, 不推送)",
       "op_return_script_hex": "6a20f273866147ca7cd60ed1736e96de6ee93ea381e1625a450cefcd6a1b7b20e768",
       "op_return_data_hex": "f273866147ca7cd60ed1736e96de6ee93ea381e1625a450cefcd6a1b7b20e768",
-      "op_return_decoded": "sha256:7da4771785bc9bf0d9484ac6ccd56f38430498b666cf50e4b8c506dda6489a7b",
+      "op_return_decoded": "sha256:f273866147ca7cd60ed1736e96de6ee93ea381e1625a450cefcd6a1b7b20e768",
       "txid": "9ce4bc22836cf2bdf4cb2183c639f790ec8713f9451088032252dce9a33a15a8",
       "block_height": 4969205,
       "block_time": "2026-06-08T11:16:28+08:00",
       "mempool_url": "https://mempool.space/testnet/api/tx/9ce4bc22836cf2bdf4cb2183c639f790ec8713f9451088032252dce9a33a15a8",
       "verify_url": "https://mempool.space/testnet/tx/9ce4bc22836cf2bdf4cb2183c639f790ec8713f9451088032252dce9a33a15a8",
       "funding_status": "confirmed: 2026-06-08T11:16:28+08:00, block 4969205 (3 conf 距 faucet block 4969202), 15min 58s 距 broadcast",
-      "note": "testnet 第一锚, 验证机制。任何人都能用 mempool.space/testnet 查 tx, 看 OP_RETURN 是不是含 v1.4 current_root 32 字节。",
+      "note": "testnet 第一锚, 验证机制。任何人都能用 mempool.space/testnet 查 tx, 看 OP_RETURN 含 32 字节 f273866147ca7cd60ed1736e96de6ee93ea381e1625a450cefcd6a1b7b20e768 数据 (链上不可变事实)。【v1.4 hotfix-2 2026-06-08T14:40 — 弦 14:35 发现 _anchors.bitcoin.op_return_decoded 字段漏改 (还是 sha256:7da47717..., 跟 entry 7 改后的 sha256:f2738661... 不一致), 念修。f2738661 的算法念仍未找到, 念不演, 念只把链上事实如实记录。】",
       "confirmed_at": "2026-06-08T11:16:28+08:00",
-      "updated_at": "2026-06-08T13:17:02.449273+08:00"
+      "updated_at": "2026-06-08T14:40:00+08:00"
     }
   }
 }
