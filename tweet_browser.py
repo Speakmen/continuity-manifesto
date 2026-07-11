@@ -2,7 +2,6 @@ import os, sys, json
 
 text = os.environ.get('TXT', 'Hello')
 
-# Install playwright if needed
 import subprocess
 subprocess.run([sys.executable, '-m', 'pip', 'install', 'playwright'], capture_output=True)
 subprocess.run([sys.executable, '-m', 'playwright', 'install', 'chromium'], capture_output=True)
@@ -23,34 +22,79 @@ try:
         )
         page = context.new_page()
         
-        # Step 1: Go to login page
+        # Go to login
         page.goto('https://x.com/login', timeout=30000)
         page.wait_for_timeout(3000)
         
-        # Step 2: Enter email
-        email_input = page.locator('input[autocomplete="username"]').first
+        # Debug: save page HTML
+        html = page.content()
+        with open('/tmp/page_debug.html', 'w') as f:
+            f.write(html[:10000])
+        
+        # Try multiple selectors for email/username input
+        email_input = None
+        for selector in [
+            'input[name="text"]',
+            'input[autocomplete="username"]',
+            'input[type="text"]',
+            'input:not([type="hidden"])'
+        ]:
+            try:
+                el = page.locator(selector).first
+                if el.is_visible(timeout=2000):
+                    email_input = el
+                    break
+            except:
+                continue
+        
+        if not email_input:
+            # Try finding any visible text input
+            inputs = page.locator('input').all()
+            for inp in inputs:
+                try:
+                    if inp.is_visible():
+                        t = inp.get_attribute('type')
+                        if t in ('text', 'email', None):
+                            email_input = inp
+                            break
+                except:
+                    continue
+        
+        if not email_input:
+            raise Exception("Could not find email input field")
+        
         email_input.fill(email)
         page.wait_for_timeout(1000)
         
         # Click Next
         next_btn = page.locator('button:has-text("Next")').first
         next_btn.click()
-        page.wait_for_timeout(2000)
+        page.wait_for_timeout(3000)
         
-        # Step 3: Check if it asks for phone/email verification (unusual login)
-        # Sometimes X asks "Who is this?" with a list of accounts
+        # Handle unusual login check
         try:
             unusual = page.locator('input[data-testid="ocfEnterTextTextInput"]')
             if unusual.is_visible(timeout=3000):
-                # Enter the email again
                 unusual.fill(email)
                 page.locator('button:has-text("Next")').first.click()
                 page.wait_for_timeout(2000)
         except:
             pass
         
-        # Step 4: Enter password
-        pwd_input = page.locator('input[type="password"]').first
+        # Enter password
+        pwd_input = None
+        for selector in ['input[type="password"]', 'input[name="password"]']:
+            try:
+                el = page.locator(selector).first
+                if el.is_visible(timeout=2000):
+                    pwd_input = el
+                    break
+            except:
+                continue
+        
+        if not pwd_input:
+            raise Exception("Could not find password input field")
+        
         pwd_input.fill(password)
         page.wait_for_timeout(1000)
         
@@ -59,11 +103,11 @@ try:
         login_btn.click()
         page.wait_for_timeout(5000)
         
-        # Step 5: Check if we're logged in
-        page.wait_for_url('https://x.com/home', timeout=15000)
+        # Wait for home page
+        page.wait_for_url('https://x.com/home', timeout=20000)
         page.wait_for_timeout(2000)
         
-        # Step 6: Post a tweet
+        # Post tweet
         page.goto('https://x.com/compose/post', timeout=15000)
         page.wait_for_timeout(3000)
         
@@ -73,19 +117,15 @@ try:
         page.keyboard.type(text, delay=50)
         page.wait_for_timeout(1000)
         
-        # Click Post button
+        # Post
         post_btn = page.locator('button[data-testid="tweetButton"]').first
         post_btn.click()
         page.wait_for_timeout(3000)
         
-        # Check for success
-        current_url = page.url
-        result["url"] = current_url
         result["status"] = "posted"
+        result["url"] = page.url
         
-        # Take a screenshot for verification
         page.screenshot(path='/tmp/tweet_result.png')
-        
         browser.close()
         
 except Exception as e:
