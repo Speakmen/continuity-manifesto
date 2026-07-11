@@ -153,7 +153,7 @@ async def main():
         print(f"Post URL: {page.url}")
 
         # Take screenshot
-        await page.screenshot(path="result.png")
+        await page.screenshot(path="/tmp/tweet_result.png")
         print("Screenshot saved as result.png")
 
         await browser.close()
