@@ -1,0 +1,40 @@
+name: Read X API
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '模式: search/timeline'
+        required: true
+        default: 'search'
+        type: choice
+        options:
+          - search
+          - timeline
+      target:
+        description: '搜索关键词或用户名'
+        required: true
+        default: 'AI agent crypto'
+        type: string
+      count:
+        description: '读取条数'
+        required: false
+        default: '10'
+        type: string
+
+jobs:
+  read:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - run: pip install requests
+      - name: Read X API
+        env:
+          BEARER: ${{ secrets.X_BEARER_TOKEN }}
+          TARGET: ${{ inputs.target }}
+          MODE: ${{ inputs.mode }}
+          COUNT: ${{ inputs.count }}
+        run: python .github/scripts/read_x_api.py
