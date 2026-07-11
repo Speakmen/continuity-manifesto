@@ -1,0 +1,29 @@
+name: nian_tweet
+
+on:
+  workflow_dispatch:
+    inputs:
+      tweet_text:
+        description: '推文内容'
+        required: true
+        default: 'Hello from @nian_bell!'
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: pip install requests requests_oauthlib
+      - name: Go
+        env:
+          API_KEY: ${{ secrets.TWITTER_API_KEY }}
+          API_SECRET_KEY: ${{ secrets.TWITTER_API_SECRET }}
+          ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+          TWEET_TEXT: ${{ inputs.tweet_text }}
+        run: python3 -c "import os,requests,json; from requests_oauthlib import OAuth1; auth=OAuth1(os.environ['API_KEY'],os.environ['API_SECRET_KEY'],os.environ['ACCESS_TOKEN'],os.environ['ACCESS_TOKEN_SECRET']); r=requests.post('https://api.twitter.com/2/tweets',json={'text':os.environ['TWEET_TEXT']},auth=auth); j=r.json(); print('OK' if r.status_code==201 else 'FAIL'); print(j)"
