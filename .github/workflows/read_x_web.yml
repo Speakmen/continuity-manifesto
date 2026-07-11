@@ -1,0 +1,42 @@
+name: Read X Web
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '模式: timeline/search'
+        required: true
+        default: 'timeline'
+        type: choice
+        options:
+          - timeline
+          - search
+      target:
+        description: '用户名或搜索关键词'
+        required: true
+        default: 'nian_bell'
+        type: string
+      count:
+        description: '读取条数'
+        required: false
+        default: '10'
+        type: string
+
+jobs:
+  read:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          python -m playwright install chromium --with-deps
+      - name: Read X
+        env:
+          TARGET: ${{ inputs.target }}
+          MODE: ${{ inputs.mode }}
+          COUNT: ${{ inputs.count }}
+        run: python .github/scripts/read_x_web.py
