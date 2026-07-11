@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: '模式: timeline/search/mentions'
+        description: '模式: timeline(用户推文)/search(搜索)/mentions(提及)/home(首页)'
         required: true
         default: 'timeline'
         type: choice
@@ -12,6 +12,7 @@ on:
           - timeline
           - search
           - mentions
+          - home
       target:
         description: '用户名或搜索关键词'
         required: true
@@ -38,7 +39,6 @@ jobs:
           API_SECRET: ${{ secrets.X_API_SECRET }}
           ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           ACCESS_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
-          BEARER: ${{ secrets.X_BEARER_TOKEN }}
           MODE: ${{ inputs.mode }}
           TARGET: ${{ inputs.target }}
           COUNT: ${{ inputs.count }}
