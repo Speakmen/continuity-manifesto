@@ -15,87 +15,39 @@ result = {"status": "error", "url": "", "error": ""}
 
 try:
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True, args=['--no-sandbox'])
+        browser = p.chromium.launch(headless=True, args=['--no-sandbox', '--disable-blink-features=AutomationControlled'])
         context = browser.new_context(viewport={'width': 1280, 'height': 900})
         page = context.new_page()
         
         page.goto('https://x.com/i/flow/login', timeout=30000)
         page.wait_for_timeout(5000)
         
-        # Step 1: Find email input by role or placeholder
-        try:
-            # Try aria-label first
-            email_field = page.get_by_label('Phone, email, or username')
-            email_field.fill(email)
-        except:
-            try:
-                email_field = page.locator('input[autocomplete="username"]')
-                email_field.fill(email)
-            except:
-                try:
-                    email_field = page.locator('input[name="text"]').first
-                    email_field.fill(email)
-                except:
-                    # Fallback: any visible text input
-                    for inp in page.locator('input:visible').all():
-                        t = inp.get_attribute('type')
-                        if t in ('text', 'email', None, ''):
-                            inp.fill(email)
-                            break
-        page.wait_for_timeout(1500)
-        
-        # Step 2: Click Next/Sign in button
-        try:
-            page.get_by_role('button', name='Next').click()
-        except:
-            try:
-                page.locator('button:has-text("Sign in")').first.click()
-            except:
-                try:
-                    page.locator('button:has-text("Next")').first.click()
-                except:
-                    page.keyboard.press('Enter')
+        # Fill email - use keyboard to type and press Enter
+        page.keyboard.type(email, delay=30)
+        page.wait_for_timeout(1000)
+        page.keyboard.press('Enter')
         page.wait_for_timeout(3000)
         
-        # Check for unusual login verification
+        # Check for unusual login
         try:
             unusual = page.locator('[data-testid="ocfEnterTextTextInput"]')
             if unusual.is_visible(timeout=2000):
-                unusual.fill(email)
-                page.get_by_role('button', name='Next').click()
+                unusual.fill('')
+                page.keyboard.type(email, delay=30)
+                page.keyboard.press('Enter')
                 page.wait_for_timeout(2000)
         except:
             pass
         
-        # Step 3: Enter password
-        try:
-            pwd_field = page.get_by_label('Password')
-            pwd_field.fill(password)
-        except:
-            try:
-                pwd_field = page.locator('input[type="password"]').first
-                pwd_field.fill(password)
-            except:
-                try:
-                    pwd_field = page.locator('input[name="password"]').first
-                    pwd_field.fill(password)
-                except:
-                    page.keyboard.type(password)
-        page.wait_for_timeout(1500)
-        
-        # Step 4: Click Log in
-        try:
-            page.get_by_role('button', name='Log in').click()
-        except:
-            try:
-                page.locator('button:has-text("Log in")').first.click()
-            except:
-                page.keyboard.press('Enter')
+        # Fill password
+        page.keyboard.type(password, delay=30)
+        page.wait_for_timeout(1000)
+        page.keyboard.press('Enter')
         page.wait_for_timeout(5000)
         
-        # Step 5: Check if logged in
+        # Check if logged in
         try:
-            page.wait_for_url('**/home', timeout=15000)
+            page.wait_for_url('**/home**', timeout=15000)
             result["status"] = "logged_in"
         except:
             result["status"] = "login_failed"
@@ -105,9 +57,7 @@ try:
             print(json.dumps(result))
             sys.exit(0)
         
-        page.wait_for_timeout(2000)
-        
-        # Step 6: Post tweet
+        # Post tweet
         page.goto('https://x.com/compose/post', timeout=15000)
         page.wait_for_timeout(3000)
         
