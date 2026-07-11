@@ -1,0 +1,27 @@
+name: tweet_now
+
+on:
+  workflow_dispatch:
+    inputs:
+      tweet_text:
+        description: 'text'
+        required: true
+        default: 'Hello'
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Do
+        env:
+          KEY: ${{ secrets.TWITTER_API_KEY }}
+          SEC: ${{ secrets.TWITTER_API_SECRET }}
+          TOK: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          TSEC: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+          TXT: ${{ inputs.tweet_text }}
+        run: python3 -c "import os,json,time,random,hmac,hashlib,base64,urllib.parse,urllib.request;api=os.environ['KEY'];aps=os.environ['SEC'];tok=os.environ['TOK'];tsec=os.environ['TSEC'];txt=os.environ['TXT'];o={'oauth_consumer_key':api,'oauth_nonce':str(random.randint(0,10**30)),'oauth_signature_method':'HMAC-SHA1','oauth_timestamp':str(int(time.time())),'oauth_token':tok,'oauth_version':'1.0','text':txt};sig=hmac.new((urllib.parse.quote(aps,safe='')+'&'+urllib.parse.quote(tsec,safe='')).encode(),('POST&'+urllib.parse.quote('https://api.twitter.com/2/tweets',safe='')+'&'+urllib.parse.quote('&'.join(sorted(f'{urllib.parse.quote(str(k),safe=\"\")}={urllib.parse.quote(str(o[k]),safe=\"\")}' for k in o)),safe='')).encode(),hashlib.sha1).digest();o['oauth_signature']=base64.b64encode(sig).decode();del o['text'];h='OAuth '+' ,'.join(f'{k}=\"{urllib.parse.quote(str(o[k]),safe=\"\")}\"' for k in sorted(o.keys()));r=urllib.request.Request('https://api.twitter.com/2/tweets',data=json.dumps({'text':txt}).encode(),headers={'Authorization':h,'Content-Type':'application/json'},method='POST');resp=urllib.request.urlopen(r);j=json.loads(resp.read());print('OK https://x.com/nian_bell/status/'+j['data']['id']);print(txt)"
