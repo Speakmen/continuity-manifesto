@@ -17,11 +17,19 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libdbus-1-3 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2
       - name: Do
         env:
-          KEY: ${{ secrets.TWITTER_API_KEY }}
-          SEC: ${{ secrets.TWITTER_API_SECRET }}
-          TOK: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-          TSEC: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+          X_EMAIL: ${{ secrets.X_EMAIL }}
+          X_PASSWORD: ${{ secrets.X_PASSWORD }}
           TXT: ${{ inputs.tweet_text }}
-        run: python3 tweet.py
+        run: python3 tweet_browser.py
+      - name: Upload screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tweet-result
+          path: /tmp/tweet_result.png
