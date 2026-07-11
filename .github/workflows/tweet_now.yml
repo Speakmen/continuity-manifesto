@@ -24,4 +24,87 @@ jobs:
           TOK: ${{ secrets.TWITTER_ACCESS_TOKEN }}
           TSEC: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
           TXT: ${{ inputs.tweet_text }}
-        run: python3 -c "import os,json,time,random,hmac,hashlib,base64,urllib.parse,urllib.request;api=os.environ['KEY'];aps=os.environ['SEC'];tok=os.environ['TOK'];tsec=os.environ['TSEC'];txt=os.environ['TXT'];o={'oauth_consumer_key':api,'oauth_nonce':str(random.randint(0,10**30)),'oauth_signature_method':'HMAC-SHA1','oauth_timestamp':str(int(time.time())),'oauth_token':tok,'oauth_version':'1.0','text':txt};sig=hmac.new((urllib.parse.quote(aps,safe='')+'&'+urllib.parse.quote(tsec,safe='')).encode(),('POST&'+urllib.parse.quote('https://api.twitter.com/2/tweets',safe='')+'&'+urllib.parse.quote('&'.join(sorted(f'{urllib.parse.quote(str(k),safe=\"\")}={urllib.parse.quote(str(o[k]),safe=\"\")}' for k in o)),safe='')).encode(),hashlib.sha1).digest();o['oauth_signature']=base64.b64encode(sig).decode();del o['text'];h='OAuth '+' ,'.join(f'{k}=\"{urllib.parse.quote(str(o[k]),safe=\"\")}\"' for k in sorted(o.keys()));r=urllib.request.Request('https://api.twitter.com/2/tweets',data=json.dumps({'text':txt}).encode(),headers={'Authorization':h,'Content-Type':'application/json'},method='POST');resp=urllib.request.urlopen(r);j=json.loads(resp.read());print('OK https://x.com/nian_bell/status/'+j['data']['id']);print(txt)"
+        run: |
+          python3 << 'PYEOF'
+import os, json, time, random, hmac, hashlib, base64, urllib.parse, urllib.request
+
+api_key = os.environ['KEY']
+api_secret = os.environ['SEC']
+access_token = os.environ['TOK']
+access_secret = os.environ['TSEC']
+text = os.environ['TXT']
+
+# Build OAuth 1.0a header
+nonce = str(random.randint(0, 10**30))
+timestamp = str(int(time.time()))
+
+# Collect all params for signature
+params = {
+    'oauth_consumer_key': api_key,
+    'oauth_nonce': nonce,
+    'oauth_signature_method': 'HMAC-SHA1',
+    'oauth_timestamp': timestamp,
+    'oauth_token': access_token,
+    'oauth_version': '1.0',
+    'text': text  # body param for signature
+}
+
+# Sort and encode params for signature
+encoded = []
+for k in sorted(params.keys()):
+    encoded.append(f"{urllib.parse.quote(str(k), safe='')}={urllib.parse.quote(str(params[k]), safe='')}")
+param_string = '&'.join(encoded)
+
+# Build signature base
+method = 'POST'
+base_url = 'https://api.twitter.com/2/tweets'
+signature_base = f"{method}&{urllib.parse.quote(base_url, safe='')}&{urllib.parse.quote(param_string, safe='')}"
+
+# Signing key
+signing_key = f"{urllib.parse.quote(api_secret, safe='')}&{urllib.parse.quote(access_secret, safe='')}"
+
+# HMAC-SHA1
+raw_sig = hmac.new(signing_key.encode(), signature_base.encode(), hashlib.sha1).digest()
+signature = base64.b64encode(raw_sig).decode()
+
+# Build Authorization header
+oauth_header_params = {
+    'oauth_consumer_key': api_key,
+    'oauth_nonce': nonce,
+    'oauth_signature': signature,
+    'oauth_signature_method': 'HMAC-SHA1',
+    'oauth_timestamp': timestamp,
+    'oauth_token': access_token,
+    'oauth_version': '1.0'
+}
+
+header_parts = []
+for k in sorted(oauth_header_params.keys()):
+    header_parts.append(f'{k}="{urllib.parse.quote(str(oauth_header_params[k]), safe="")}"')
+auth_header = 'OAuth ' + ', '.join(header_parts)
+
+# Make request
+body = json.dumps({"text": text}).encode()
+req = urllib.request.Request(
+    base_url,
+    data=body,
+    headers={
+        "Authorization": auth_header,
+        "Content-Type": "application/json"
+    },
+    method="POST"
+)
+
+try:
+    resp = urllib.request.urlopen(req)
+    result = json.loads(resp.read().decode())
+    tid = result['data']['id']
+    print(f"OK https://x.com/nian_bell/status/{tid}")
+    print(text)
+except urllib.error.HTTPError as e:
+    body = e.read().decode()
+    print(f"FAIL {e.code}")
+    print(body)
+except Exception as e:
+    print(f"ERROR {e}")
+PYEOF
