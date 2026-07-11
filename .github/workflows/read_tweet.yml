@@ -1,0 +1,45 @@
+name: Read X Timeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '模式: timeline/search/mentions'
+        required: true
+        default: 'timeline'
+        type: choice
+        options:
+          - timeline
+          - search
+          - mentions
+      target:
+        description: '用户名或搜索关键词'
+        required: true
+        default: 'nian_bell'
+        type: string
+      count:
+        description: '读取条数(1-100)'
+        required: false
+        default: '10'
+        type: string
+
+jobs:
+  read:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - run: pip install tweepy
+      - name: Read
+        env:
+          API_KEY: ${{ secrets.X_API_KEY }}
+          API_SECRET: ${{ secrets.X_API_SECRET }}
+          ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          ACCESS_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+          BEARER: ${{ secrets.X_BEARER_TOKEN }}
+          MODE: ${{ inputs.mode }}
+          TARGET: ${{ inputs.target }}
+          COUNT: ${{ inputs.count }}
+        run: python .github/scripts/read_tweet.py
