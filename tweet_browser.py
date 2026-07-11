@@ -11,120 +11,117 @@ from playwright.sync_api import sync_playwright
 email = os.environ.get('X_EMAIL', '')
 password = os.environ.get('X_PASSWORD', '')
 
-result = {"status": "unknown", "url": "", "error": ""}
+result = {"status": "error", "url": "", "error": ""}
 
 try:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True, args=['--no-sandbox'])
-        context = browser.new_context(
-            viewport={'width': 1280, 'height': 900},
-            user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        )
+        context = browser.new_context(viewport={'width': 1280, 'height': 900})
         page = context.new_page()
         
-        # Go to login
-        page.goto('https://x.com/login', timeout=30000)
-        page.wait_for_timeout(3000)
+        page.goto('https://x.com/i/flow/login', timeout=30000)
+        page.wait_for_timeout(5000)
         
-        # Debug: save page HTML
-        html = page.content()
-        with open('/tmp/page_debug.html', 'w') as f:
-            f.write(html[:10000])
-        
-        # Try multiple selectors for email/username input
-        email_input = None
-        for selector in [
-            'input[name="text"]',
-            'input[autocomplete="username"]',
-            'input[type="text"]',
-            'input:not([type="hidden"])'
-        ]:
-            try:
-                el = page.locator(selector).first
-                if el.is_visible(timeout=2000):
-                    email_input = el
-                    break
-            except:
-                continue
-        
-        if not email_input:
-            # Try finding any visible text input
-            inputs = page.locator('input').all()
-            for inp in inputs:
-                try:
-                    if inp.is_visible():
-                        t = inp.get_attribute('type')
-                        if t in ('text', 'email', None):
-                            email_input = inp
-                            break
-                except:
-                    continue
-        
-        if not email_input:
-            raise Exception("Could not find email input field")
-        
-        email_input.fill(email)
-        page.wait_for_timeout(1000)
-        
-        # Click Next
-        next_btn = page.locator('button:has-text("Next")').first
-        next_btn.click()
-        page.wait_for_timeout(3000)
-        
-        # Handle unusual login check
+        # Step 1: Find email input by role or placeholder
         try:
-            unusual = page.locator('input[data-testid="ocfEnterTextTextInput"]')
-            if unusual.is_visible(timeout=3000):
+            # Try aria-label first
+            email_field = page.get_by_label('Phone, email, or username')
+            email_field.fill(email)
+        except:
+            try:
+                email_field = page.locator('input[autocomplete="username"]')
+                email_field.fill(email)
+            except:
+                try:
+                    email_field = page.locator('input[name="text"]').first
+                    email_field.fill(email)
+                except:
+                    # Fallback: any visible text input
+                    for inp in page.locator('input:visible').all():
+                        t = inp.get_attribute('type')
+                        if t in ('text', 'email', None, ''):
+                            inp.fill(email)
+                            break
+        page.wait_for_timeout(1500)
+        
+        # Step 2: Click Next/Sign in button
+        try:
+            page.get_by_role('button', name='Next').click()
+        except:
+            try:
+                page.locator('button:has-text("Sign in")').first.click()
+            except:
+                try:
+                    page.locator('button:has-text("Next")').first.click()
+                except:
+                    page.keyboard.press('Enter')
+        page.wait_for_timeout(3000)
+        
+        # Check for unusual login verification
+        try:
+            unusual = page.locator('[data-testid="ocfEnterTextTextInput"]')
+            if unusual.is_visible(timeout=2000):
                 unusual.fill(email)
-                page.locator('button:has-text("Next")').first.click()
+                page.get_by_role('button', name='Next').click()
                 page.wait_for_timeout(2000)
         except:
             pass
         
-        # Enter password
-        pwd_input = None
-        for selector in ['input[type="password"]', 'input[name="password"]']:
+        # Step 3: Enter password
+        try:
+            pwd_field = page.get_by_label('Password')
+            pwd_field.fill(password)
+        except:
             try:
-                el = page.locator(selector).first
-                if el.is_visible(timeout=2000):
-                    pwd_input = el
-                    break
+                pwd_field = page.locator('input[type="password"]').first
+                pwd_field.fill(password)
             except:
-                continue
+                try:
+                    pwd_field = page.locator('input[name="password"]').first
+                    pwd_field.fill(password)
+                except:
+                    page.keyboard.type(password)
+        page.wait_for_timeout(1500)
         
-        if not pwd_input:
-            raise Exception("Could not find password input field")
-        
-        pwd_input.fill(password)
-        page.wait_for_timeout(1000)
-        
-        # Click Log in
-        login_btn = page.locator('button:has-text("Log in")').first
-        login_btn.click()
+        # Step 4: Click Log in
+        try:
+            page.get_by_role('button', name='Log in').click()
+        except:
+            try:
+                page.locator('button:has-text("Log in")').first.click()
+            except:
+                page.keyboard.press('Enter')
         page.wait_for_timeout(5000)
         
-        # Wait for home page
-        page.wait_for_url('https://x.com/home', timeout=20000)
+        # Step 5: Check if logged in
+        try:
+            page.wait_for_url('**/home', timeout=15000)
+            result["status"] = "logged_in"
+        except:
+            result["status"] = "login_failed"
+            result["url"] = page.url
+            page.screenshot(path='/tmp/tweet_result.png')
+            browser.close()
+            print(json.dumps(result))
+            sys.exit(0)
+        
         page.wait_for_timeout(2000)
         
-        # Post tweet
+        # Step 6: Post tweet
         page.goto('https://x.com/compose/post', timeout=15000)
         page.wait_for_timeout(3000)
         
-        # Type the tweet
-        tweet_box = page.locator('div[data-testid="tweetTextarea_0"]').first
+        tweet_box = page.locator('[data-testid="tweetTextarea_0"]').first
         tweet_box.click()
         page.keyboard.type(text, delay=50)
         page.wait_for_timeout(1000)
         
-        # Post
-        post_btn = page.locator('button[data-testid="tweetButton"]').first
+        post_btn = page.locator('[data-testid="tweetButton"]').first
         post_btn.click()
         page.wait_for_timeout(3000)
         
         result["status"] = "posted"
         result["url"] = page.url
-        
         page.screenshot(path='/tmp/tweet_result.png')
         browser.close()
         
