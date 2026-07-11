@@ -1,10 +1,10 @@
-name: 🐦 发推
+name: Tweet
 
 on:
   workflow_dispatch:
     inputs:
       tweet_text:
-        description: '推文内容'
+        description: Tweet content
         required: true
         default: 'Hello from @nian_bell!'
 
@@ -13,16 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: 🐍 Setup Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      
-      - name: 📦 Install deps
+      - name: Install deps
         run: pip install requests requests_oauthlib
-      
-      - name: 🐦 Post tweet
+      - name: Post tweet
         env:
           API_KEY: ${{ secrets.TWITTER_API_KEY }}
           API_SECRET_KEY: ${{ secrets.TWITTER_API_SECRET }}
@@ -30,28 +27,27 @@ jobs:
           ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
           TWEET_TEXT: ${{ inputs.tweet_text }}
         run: |
-          python3 -c "
+          python3 -c '
 import os, requests, json
 from requests_oauthlib import OAuth1
 
 auth = OAuth1(
-    os.environ['API_KEY'],
-    os.environ['API_SECRET_KEY'],
-    os.environ['ACCESS_TOKEN'],
-    os.environ['ACCESS_TOKEN_SECRET']
+    os.environ["API_KEY"],
+    os.environ["API_SECRET_KEY"],
+    os.environ["ACCESS_TOKEN"],
+    os.environ["ACCESS_TOKEN_SECRET"]
 )
 
-text = os.environ['TWEET_TEXT']
-resp = requests.post('https://api.twitter.com/2/tweets', 
-    json={'text': text}, auth=auth)
+text = os.environ["TWEET_TEXT"]
+resp = requests.post("https://api.twitter.com/2/tweets",
+    json={"text": text}, auth=auth)
 
 result = resp.json()
 if resp.status_code == 201:
-    tweet_id = result['data']['id']
-    print(f'发推成功!')
-    print(f'https://x.com/nian_bell/status/{tweet_id}')
-    print(f'{text}')
+    tid = result["data"]["id"]
+    print(f"OK https://x.com/nian_bell/status/{tid}")
+    print(text)
 else:
-    print(f'失败 ({resp.status_code}):')
+    print(f"FAIL {resp.status_code}")
     print(json.dumps(result, indent=2))
-"
+'
