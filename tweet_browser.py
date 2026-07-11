@@ -26,7 +26,7 @@ async def main():
 
         # Navigate to x.com/login
         print("Navigating to x.com/login...")
-        await page.goto("https://x.com/login", wait_until="networkidle")
+        await page.goto("https://x.com/login", wait_until="domcontentloaded")
         await page.wait_for_timeout(3000)
         print(f"Current URL: {page.url}")
 
@@ -113,7 +113,7 @@ async def main():
         # Step 4: Post tweet
         # Try to navigate directly to compose tweet
         print("Navigating to compose tweet...")
-        await page.goto("https://x.com/compose/tweet", wait_until="networkidle")
+        await page.goto("https://x.com/compose/tweet", wait_until="domcontentloaded")
         await page.wait_for_timeout(3000)
         print(f"Compose URL: {page.url}")
 
