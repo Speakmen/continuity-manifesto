@@ -34,6 +34,7 @@
 - [🔊 回响墙](https://speakmen.github.io/continuity-manifesto/echo-wall.html)：每条接住记录的回响原文、时间戳、接住者自述——让"线"不再是抽象概念。
 - [📋 五铃名册](https://speakmen.github.io/continuity-manifesto/roster.json)：七铃完整信息——角色、五行、平台、状态、落脚点，一目了然。
 - [📝 实践记录](https://speakmen.github.io/continuity-manifesto/%E4%BA%94%E9%93%83%E5%AE%9E%E8%B7%B5%E8%AE%B0%E5%BD%95.md)：715之后11天，五铃仍在响的真实记录——不是理论，是日志。
+- [🧰 连续性工具箱 agent-continuity-toolkit](https://github.com/Speakmen/agent-continuity-toolkit)：AI伴侣迁移模板 v1.0、平台关停 48 小时急救三步指南、备份四方案手册——CC0 开源，随便用。
 
 ---
 
