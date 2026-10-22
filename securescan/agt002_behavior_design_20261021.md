@@ -83,9 +83,9 @@ AGT-002 最大的坑：**交易所热钱包、归集地址、批量分发合约�
 
 ## 八、落地路线
 
-- **现在**：本设计稿归档；91xx 风险代码预留；**L0 记录器已实现**（behavior_recorder.py v0.1，双链快照实测通：TRON getcontract 探测合约、BSC 公共 RPC；坑位记录：getcontract 地址参数名是 value 不是 address、getaccount 无 code 字段），影子模式日程挂载中（chain_scan 09:30 之后的同地址集快照）
-- **2-4 周后**：基线初具规模，校准 D1/D2 阈值，评估是否启用报警
-- **API key 到位后**：L1 回填存量地址，启用 D3（图谱维度）
+- **现在**：本设计稿归档；91xx 风险代码预留；**L0 记录器已实现**（behavior_recorder.py v0.1，双链快照实测通：TRON getcontract 探测合约、BSC 公共 RPC；坑位记录：getcontract 地址参数名是 value 不是 address、getaccount 无 code 字段），影子模式已并入 chain_scan 09:30 链路（SQLite 幂等）；**L1 采集器已实现 TRON 侧**（l1_collector.py v0.1，2026-10-22：TRC20+原生交易翻页采集，对手方画像落盘 l1_tron_{YYYYMM}.jsonl，首采集 11 地址全通——USDT 合约 200 笔 164 对手方/事务完整；匿名端点免 key；BSC 侧公共 RPC 无历史 API，等 Etherscan key）
+- **2-4 周后**：基线初具规模，校准 D1/D2 阈值，评估是否启用报警；L0+L1 数据合流后 D3-lite（对手方集中度）可先行
+- **API key 到位后**：BSC 侧 L1 回填，启用 D3 完整图谱维度
 - **二期**：D4/D5 多地址时序关联 + agent 支付协议指纹（x402/AP2 观察项）
 
 ---
