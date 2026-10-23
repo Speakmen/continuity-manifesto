@@ -36,6 +36,7 @@ import requests
 from agt_scanner import AgentCredentialScanner
 
 BSC_PUBLIC_RPC = AgentCredentialScanner.BSC_PUBLIC_RPC
+ETH_PUBLIC_RPC = AgentCredentialScanner.ETH_PUBLIC_RPC
 
 LOG_DIR = Path(__file__).parent / "data" / "behavior_log"
 
@@ -48,18 +49,20 @@ class BehaviorRecorder:
 
     def __init__(self, chain: str, timeout: int = 10):
         self.chain = chain.lower()
-        if self.chain not in ("bsc", "tron"):
-            raise ValueError(f"不支持的链: {chain}（仅 bsc/tron）")
+        if self.chain not in ("bsc", "tron", "eth"):
+            raise ValueError(f"不支持的链: {chain}（仅 bsc/eth/tron）")
         self.timeout = timeout
         self.session = requests.Session()
-        self.session.headers.update({"User-Agent": "SecureScan-AGT002-L0/0.1"})
+        self.session.headers.update({"User-Agent": "SecureScan-AGT002-L0/0.2"})
+        # EVM 链（bsc/eth）共用 eth_* 方法族，仅 RPC URL 不同；TRON 走 _tron_post
+        self.rpc_url = {"bsc": BSC_PUBLIC_RPC, "eth": ETH_PUBLIC_RPC}.get(self.chain)
 
-    # ---------- BSC（公共 RPC） ----------
-    def _bsc_rpc(self, method: str, params: list) -> Optional[dict]:
+    # ---------- EVM（BSC/ETH 公共 RPC，方法族同构仅 URL 不同） ----------
+    def _evm_rpc(self, method: str, params: list) -> Optional[dict]:
         payload = {"jsonrpc": "2.0", "method": method, "params": params, "id": 1}
         for attempt in range(3):
             try:
-                r = self.session.post(BSC_PUBLIC_RPC, json=payload, timeout=self.timeout)
+                r = self.session.post(self.rpc_url, json=payload, timeout=self.timeout)
                 if r.status_code == 200:
                     return r.json()
                 if r.status_code in (429, 500, 502, 503, 504) and attempt < 2:
@@ -104,14 +107,14 @@ class BehaviorRecorder:
             "source": "L0",
         }
         try:
-            if self.chain == "bsc":
-                bal = self._bsc_rpc("eth_getBalance", [address, "latest"])
+            if self.chain in ("bsc", "eth"):
+                bal = self._evm_rpc("eth_getBalance", [address, "latest"])
                 if bal and "result" in bal:
                     rec["balance"] = str(int(bal["result"], 16))
-                nonce = self._bsc_rpc("eth_getTransactionCount", [address, "latest"])
+                nonce = self._evm_rpc("eth_getTransactionCount", [address, "latest"])
                 if nonce and "result" in nonce:
                     rec["nonce"] = int(nonce["result"], 16)
-                code = self._bsc_rpc("eth_getCode", [address, "latest"])
+                code = self._evm_rpc("eth_getCode", [address, "latest"])
                 if code and isinstance(code.get("result"), str):
                     rec["is_contract"] = len(code["result"]) > 2
             else:  # tron
