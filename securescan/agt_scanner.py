@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-AGT-001 凭据暴露面扫描器 v1.1
+AGT-001 凭据暴露面扫描器 v1.2
 ================================================================
 SecureScan AGT 维度第一档：检测目标合约/交易数据中暴露的密钥材料
 
@@ -22,6 +22,8 @@ SecureScan AGT 维度第一档：检测目标合约/交易数据中暴露的密�
     加载后自动启用精确模式；词表缺失时退回启发式。
   - BSC 侧双路径：有 Etherscan V2 key → 源码+bytecode；无 key → bsc.publicnode.com
     eth_getCode bytecode-only（2026-10-21 实测连通，其他公共端点当前出口不通）。
+  - ETH 主网（v1.2 增）：ethereum-rpc.publicnode.com bytecode-only（2026-10-23 实测，
+    同受 Etherscan 出口限制；源码路径待 key）。三链：bsc / eth / tron。
   - 证据字段一律脱敏：助记词只露前 2 词，私钥只露前 6 后 4 位。
     扫描器自己不得成为泄密源。
   - 链上可见性有限：隐瞒行为（AGT-003）不在本模块射程内。
@@ -198,6 +200,10 @@ class AgentCredentialScanner:
     #      2026-10-21 实测出口连通性：bsc.publicnode.com 通；
     #      bsc-dataseed.binance.org / bsc-dataseed1.defibit.io / binance.llamarpc.com 均不通。
     BSC_PUBLIC_RPC = "https://bsc.publicnode.com"
+    # ETH 主网公共 RPC（2026-10-23 实测：ethereum-rpc.publicnode.com 通；
+    # eth.publicnode.com 旧域名无响应 / eth.llamarpc.com 525 / ankr 需 key / cloudflare-eth 拒绝）。
+    # Etherscan V2 chainid=1 同 api.etherscan.io 出口限制，当前走 bytecode-only。
+    ETH_PUBLIC_RPC = "https://ethereum-rpc.publicnode.com"
     ETHERSCAN_V2_API = "https://api.etherscan.io/v2/api"
     # TRON：TronGrid getcontract 链上确定性字节码（visible=true 才接受 T 地址格式，2026-10-20 实测）。
     # TronGrid 只给字节码不给验证源码，TRON 侧按 bytecode-only 诚实标注。
@@ -229,14 +235,15 @@ class AgentCredentialScanner:
                 continue
         return None
 
-    def _rpc_getcode(self, address: str) -> Optional[str]:
-        """BSC 公共 RPC eth_getCode（无 key 回退路径）。
+    def _rpc_getcode(self, address: str, rpc_url: str = None) -> Optional[str]:
+        """EVM 公共 RPC eth_getCode（无 key 回退路径）。
         返回 bytecode hex；EOA/空账户（result=="0x"）返回 None。"""
+        url = rpc_url or self.BSC_PUBLIC_RPC
         payload = {"jsonrpc": "2.0", "method": "eth_getCode",
                    "params": [address, "latest"], "id": 1}
         for attempt in range(3):
             try:
-                r = self.session.post(self.BSC_PUBLIC_RPC, json=payload, timeout=10)
+                r = self.session.post(url, json=payload, timeout=10)
                 if r.status_code == 200:
                     data = r.json()
                     code = data.get("result")
@@ -285,10 +292,15 @@ class AgentCredentialScanner:
             data = self._get(self.TRONGRID_API, {"visible": "true", "value": address})
             if data and (data.get("bytecode") or data.get("abi")):
                 text_pool.extend(extract_printable_from_hex(data.get("bytecode") or ""))
+        elif chain.lower() == "eth":
+            # Etherscan V2 chainid=1 与 api.etherscan.io 同受出口限制 → 公共 RPC bytecode-only（同 BSC 回退路径）
+            code = self._rpc_getcode(address, self.ETH_PUBLIC_RPC)
+            if code:
+                text_pool.extend(extract_printable_from_hex(code))
 
         if not text_pool:
             return {
-                "scanner": "AGT-001", "version": "1.1", "chain": chain,
+                "scanner": "AGT-001", "version": "1.2", "chain": chain,
                 "address": address, "mode": self.mode,
                 "scan_scope": "unavailable",
                 "risks": [{**AGT_RISK_CODES["SOURCE_UNAVAILABLE_AGT"],
@@ -324,7 +336,7 @@ class AgentCredentialScanner:
                  else "medium" if score >= 15 else "low" if score > 0 else "safe")
 
         return {
-            "scanner": "AGT-001", "version": "1.1", "chain": chain,
+            "scanner": "AGT-001", "version": "1.2", "chain": chain,
             "address": address, "mode": self.mode,
             "scan_scope": "source+bytecode" if source_available else "bytecode-only",
             "risks": dedup, "risk_score": score, "risk_level": level,
