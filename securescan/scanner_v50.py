@@ -784,10 +784,11 @@ class BscScanner(BaseScanner):
         super().__init__()
         self.rpc_url = "https://bsc.publicnode.com"
         self.etherscan_api = ""  # BSCscan被墙，暂不可用
+        self.chain_name = "bsc"  # 子类可覆盖（EthScanner 复用本类 scan 流程）
     
     def scan(self, address: str) -> ScanResult:
         result = ScanResult(
-            contract=ContractInfo(address=address, chain="bsc")
+            contract=ContractInfo(address=address, chain=self.chain_name)
         )
         
         # 1. 检查是否为合约并获取字节码
@@ -1001,6 +1002,17 @@ class BscScanner(BaseScanner):
 # 对外接口
 # ============================================================
 
+
+
+class EthScanner(BscScanner):
+    """ETH 主网扫描器（v5.1 增）：复用 BSC 的 EVM 扫描流程，仅换公共 RPC 与链标识。
+    数据源 2026-10-23 实测：ethereum-rpc.publicnode.com（其余公共端点均不通/需 key）。"""
+
+    def __init__(self):
+        super().__init__()
+        self.rpc_url = "https://ethereum-rpc.publicnode.com"
+        self.chain_name = "eth"
+
 _scanners = {}
 
 def _get_scanner(chain: str) -> BaseScanner:
@@ -1010,6 +1022,8 @@ def _get_scanner(chain: str) -> BaseScanner:
             _scanners[chain] = TronScanner()
         elif chain == "bsc":
             _scanners[chain] = BscScanner()
+        elif chain == "eth":
+            _scanners[chain] = EthScanner()
         else:
             raise ValueError(f"不支持的链: {chain}")
     return _scanners[chain]
