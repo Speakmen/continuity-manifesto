@@ -64,42 +64,41 @@ const clean = async p => p.evaluate(()=>{document.querySelectorAll('#onetrust-co
     const nSel = await page.locator('mat-select').count();
     console.log('mat-select count in page:', nSel);
     // 点击对话框里最后一个 mat-select（Work type 在"Work details"第一行）
-    const dlg = page.locator('mat-dialog-container, [role="dialog"], .cdk-overlay-pane').last();
-    // 诊断：把含 "Work type" 的那个 form-field 的 HTML 打出来，看清到底是什么控件
-    const html = await page.evaluate(() => {
-      const all = Array.from(document.querySelectorAll('mat-form-field, div, section'));
-      const f = all.find(e => /Work type/.test(e.innerText || '') && (e.innerText || '').length < 120);
-      return f ? f.outerHTML.slice(0, 900) : '(not found)';
-    });
-    console.log('WORKTYPE_HTML:', html);
-    const ff = dlg.locator('mat-form-field').filter({ hasText: 'Work type' }).first();
-    console.log('formfield count:', await ff.count());
-    const selLoc = (await ff.count()) ? ff : dlg.locator('mat-select').first();
-    if (await selLoc.count() > 0) {
-      await selLoc.scrollIntoViewIfNeeded().catch(()=>{});
-      await selLoc.click({ force: true }).catch(()=>{});
-      await sleep(2000);
-      const openOpts = await page.evaluate(()=>Array.from(document.querySelectorAll('mat-option,[role="option"]')).map(o=>(o.innerText||'').replace(/\s+/g,' ').trim()).filter(Boolean).slice(0,40));
-      console.log('options opened:', JSON.stringify(openOpts).slice(0,700));
-      if (openOpts.length === 0) {
-        // 键盘兜底：打开后直接输入类型名首字，或方向键选择
-        await page.keyboard.type(TYPE.slice(0, 4), { delay: 60 }).catch(()=>{});
-        await sleep(800);
-        await page.keyboard.press('Enter').catch(()=>{});
-        await sleep(800);
-        const chosen = await page.evaluate(()=>{const m=document.body.innerText.match(/Work type[^\n]{0,60}/);return m?m[0]:'';});
-        console.log('after keyboard pick:', chosen);
-      } else {
-        const ok = await page.evaluate((type)=>{
-          const norm=s=>(s||'').replace(/\s+/g,' ').trim().toLowerCase();
-          const list=Array.from(document.querySelectorAll('mat-option,[role="option"]'));
-          let o=list.find(x=>norm(x.innerText)===type.toLowerCase());
-          if(!o) o=list.find(x=>norm(x.innerText).includes('technical'));
-          if(o){o.click();return true;}return false;}, TYPE);
-        console.log('type selected by click:', ok);
-        await sleep(1000);
-      }
+    // Work type 真身是 <app-deep-select-input id="cy-work-types">（自定义组件，不是 mat-select）
+    const wt = page.locator('#cy-work-types').first();
+    console.log('cy-work-types count:', await wt.count());
+    const input = page.locator('#cy-work-types input').first();
+    console.log('inner input count:', await input.count());
+    if (await input.count() > 0) {
+      await input.click({ force: true }).catch(()=>{});
+      await sleep(1200);
+      await input.type(TYPE.slice(0, 8), { delay: 60 }).catch(()=>{});
+      await sleep(1500);
+    } else {
+      await wt.click({ force: true }).catch(()=>{});
+      await sleep(1500);
     }
+    const opts = await page.evaluate(()=>Array.from(document.querySelectorAll('mat-option,[role="option"],.mat-mdc-option,.cdk-overlay-pane li,.menu-container li')).map(o=>(o.innerText||'').replace(/\s+/g,' ').trim()).filter(Boolean).slice(0,20));
+    console.log('type options:', JSON.stringify(opts).slice(0,600));
+    let ok = await page.evaluate((type)=>{
+      const norm=s=>(s||'').replace(/\s+/g,' ').trim().toLowerCase();
+      const list=Array.from(document.querySelectorAll('mat-option,[role="option"],.mat-mdc-option,.cdk-overlay-pane li'));
+      let o=list.find(x=>norm(x.innerText)===type.toLowerCase());
+      if(!o) o=list.find(x=>norm(x.innerText).includes('technical'));
+      if(o){o.click();return true;} return false;
+    }, TYPE);
+    if (!ok) {
+      await page.keyboard.press('ArrowDown').catch(()=>{});
+      await sleep(400);
+      await page.keyboard.press('Enter').catch(()=>{});
+      await sleep(600);
+      const val = await page.evaluate(()=>{ const el=document.querySelector('#cy-work-types'); return el ? (el.innerText||'').replace(/\s+/g,' ').trim().slice(0,60) : ''; });
+      console.log('after keyboard, work type shows:', val);
+      ok = /technical/i.test(val);
+    }
+    console.log('type selected:', ok);
+    await sleep(1200);
+
     // 保存（限定在对话框里）
     for (const sel of ['button:has-text("Save changes")','button:has-text("Save")']) {
       const b=page.locator('mat-dialog-container, [role="dialog"], .cdk-overlay-pane').last().locator(sel).last();
