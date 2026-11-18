@@ -53,7 +53,7 @@ const DIALOG_TRIGGER = () => {
       const roots = Array.from(document.querySelectorAll('mat-dialog-container,[role="dialog"],.cdk-overlay-pane,.mat-mdc-dialog-container'));
       for (const r of roots) {
         const btns = Array.from(r.querySelectorAll('button')).filter(b => !b.disabled);
-        const target = btns.find(b => /^(add|add work|search|continue|retrieve|add work with a doi)$/i.test((b.innerText||'').replace(/\s+/g,' ').trim()));
+        const target = btns.find(b => /retrieve/i.test((b.innerText||''))) || btns.find(b => /^(add|continue)$/i.test((b.innerText||'').replace(/\s+/g,' ').trim()));
         if (target) { target.click(); return (target.innerText||'').replace(/\s+/g,' ').trim(); }
       }
       return null;
