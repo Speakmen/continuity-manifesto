@@ -60,53 +60,41 @@ const clean = async p => p.evaluate(()=>{document.querySelectorAll('#onetrust-co
     });
     console.log('dialog text:', dlgText);
 
-    // 选类型：Work type 是对话框里的下拉，先诊断再点
-    const diag = await page.evaluate(() => {
-      const roots = Array.from(document.querySelectorAll('mat-dialog-container,[role="dialog"],.cdk-overlay-pane'));
-      const out = { selects: [], comboboxes: [], labels: [] };
-      roots.forEach(r => {
-        r.querySelectorAll('mat-select').forEach(s => out.selects.push((s.innerText||'').replace(/\s+/g,' ').trim().slice(0,40)));
-        r.querySelectorAll('[role="combobox"],[role="listbox"],[aria-haspopup]').forEach(s => out.comboboxes.push((s.getAttribute('aria-label')||s.innerText||'').replace(/\s+/g,' ').trim().slice(0,40)));
-        r.querySelectorAll('label,.mat-mdc-form-field-label,mat-label').forEach(s => out.labels.push((s.innerText||'').replace(/\s+/g,' ').trim().slice(0,30)));
-      });
-      return out;
-    });
-    console.log('diag:', JSON.stringify(diag).slice(0,700));
-
-    // 逐个候选点击，直到出现选项
-    let pickedType = false;
-    const clickTargets = ['mat-select', '[aria-haspopup]', 'mat-form-field:has-text("Work type") mat-select'];
-    for (const tgt of clickTargets) {
-      const loc = page.locator(tgt).last();
-      if (await loc.count() === 0) continue;
-      await loc.click({ force: true }).catch(()=>{});
-      await sleep(1800);
-      const opts = await page.evaluate(()=>Array.from(document.querySelectorAll('mat-option,[role="option"]')).map(o=>(o.innerText||'').replace(/\s+/g,' ').trim()).filter(Boolean).slice(0,30));
-      console.log('options after', tgt, ':', JSON.stringify(opts).slice(0,600));
-      if (opts.length) {
-        pickedType = await page.evaluate((type)=>{
-          const norm = s => (s||'').replace(/\s+/g,' ').trim().toLowerCase();
-          const list = Array.from(document.querySelectorAll('mat-option,[role="option"]'));
-          let o = list.find(x => norm(x.innerText) === type.toLowerCase());
-          if (!o) o = list.find(x => norm(x.innerText).includes(type.toLowerCase())) || list.find(x => /technical/i.test(x.innerText||''));
-          if (o) { o.click(); return true; } return false;
-        }, TYPE);
-        console.log('type selected:', pickedType);
-        if (pickedType) { await sleep(1200); break; }
-        await page.keyboard.press('Escape').catch(()=>{});
+    // 选类型：用键盘在 Work type 下拉里选（比找 DOM 稳）
+    const nSel = await page.locator('mat-select').count();
+    console.log('mat-select count in page:', nSel);
+    // 点击对话框里最后一个 mat-select（Work type 在"Work details"第一行）
+    const selLoc = page.locator('mat-select').last();
+    if (await selLoc.count() > 0) {
+      await selLoc.scrollIntoViewIfNeeded().catch(()=>{});
+      await selLoc.click({ force: true }).catch(()=>{});
+      await sleep(2000);
+      const openOpts = await page.evaluate(()=>Array.from(document.querySelectorAll('mat-option,[role="option"]')).map(o=>(o.innerText||'').replace(/\s+/g,' ').trim()).filter(Boolean).slice(0,40));
+      console.log('options opened:', JSON.stringify(openOpts).slice(0,700));
+      if (openOpts.length === 0) {
+        // 键盘兜底：打开后直接输入类型名首字，或方向键选择
+        await page.keyboard.type(TYPE.slice(0, 4), { delay: 60 }).catch(()=>{});
+        await sleep(800);
+        await page.keyboard.press('Enter').catch(()=>{});
+        await sleep(800);
+        const chosen = await page.evaluate(()=>{const m=document.body.innerText.match(/Work type[^\n]{0,60}/);return m?m[0]:'';});
+        console.log('after keyboard pick:', chosen);
+      } else {
+        const ok = await page.evaluate((type)=>{
+          const norm=s=>(s||'').replace(/\s+/g,' ').trim().toLowerCase();
+          const list=Array.from(document.querySelectorAll('mat-option,[role="option"]'));
+          let o=list.find(x=>norm(x.innerText)===type.toLowerCase());
+          if(!o) o=list.find(x=>norm(x.innerText).includes('technical'));
+          if(o){o.click();return true;}return false;}, TYPE);
+        console.log('type selected by click:', ok);
+        await sleep(1000);
       }
     }
-    // 保存：对话框内按钮
-    const saved = await page.evaluate(() => {
-      const roots = Array.from(document.querySelectorAll('mat-dialog-container,[role="dialog"],.cdk-overlay-pane'));
-      for (const r of roots) {
-        const btns = Array.from(r.querySelectorAll('button')).filter(b=>!b.disabled);
-        const t = btns.find(b => /^(save|save changes|add to orcid|add work)$/i.test((b.innerText||'').replace(/\s+/g,' ').trim()));
-        if (t) { t.click(); return (t.innerText||'').replace(/\s+/g,' ').trim(); }
-      }
-      return null;
-    });
-    console.log('save clicked:', saved);
+    // 保存
+    for (const sel of ['button:has-text("Save changes")','button:has-text("Save")']) {
+      const b=page.locator(sel).last();
+      if (await b.count()>0 && await b.isEnabled().catch(()=>false)) { await b.click().catch(()=>{}); console.log('save:', sel); break; }
+    }
     await sleep(15000); await clean(page);
     await page.screenshot({path:'orcid-v9-after.png', fullPage:true}).catch(()=>{});
     await page.goto('https://orcid.org/my-orcid',{waitUntil:'domcontentloaded',timeout:90000});
