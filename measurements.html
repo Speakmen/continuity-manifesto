@@ -167,8 +167,8 @@
                     <div class="tl-date">2026-11-18</div>
                     <div class="tl-title"><span class="lang-zh">判 C 又撤：样本从 883 到 2,371 后点估计从 0.920 变成 0.875</span><span class="lang-en">Verdict C retracted: with 883→2,371 samples, the estimate moved 0.920→0.875</span>
                         <span class="verdict v-retract"><span class="lang-zh">撤回</span><span class="lang-en">RETRACTED</span></span></div>
-                    <div class="tl-body"><span class="lang-zh">按预注册规则复跑，<code>0.875 &lt; 0.88</code>，原判"收官"被自己撤回。发布后 <strong>40 分钟</strong> 完成更正（v1.2）。错因：把"分不开两个接近的值"误用成"结论已定"。</span>
-                    <span class="lang-en">Re-running under the pre-registered rule gave <code>0.875 &lt; 0.88</code>, so the "closed" verdict was retracted — corrected <strong>40 minutes</strong> after publication (v1.2). Root cause: mistaking "two close values cannot be told apart" for "the conclusion is settled".</span></div>
+                    <div class="tl-body"><span class="lang-zh">按预注册规则复跑，<code>0.875 &lt; 0.88</code>，原判"收官"被自己撤回。发布后 <strong>40 分钟</strong> 完成更正（v1.2）。错因：把"分不开两个接近的值"误用成"结论已定"。撤回不是终点：v1.3 补入实验二——正交留出下（条件残差相关 <code>+0.000</code>），违反"内存⊥负载"的联合异常，联合检测 <code>100%</code>、逐维 <code>0%</code>（同一误报率）；真干预数据（8 核降频）联合 <code>37.5%</code>、逐维 <code>4.2%</code>，差 9 倍。证明"联合偏离可学"，不证明"值得投入"。</span>
+                    <span class="lang-en">Re-running under the pre-registered rule gave <code>0.875 &lt; 0.88</code>, so the "closed" verdict was retracted — corrected <strong>40 minutes</strong> after publication (v1.2). Root cause: mistaking "two close values cannot be told apart" for "the conclusion is settled". A retraction is not an ending: v1.3 added Experiment 2 — under orthogonal holdout (conditional-residual correlation <code>+0.000</code>), joint anomalies violating "memory ⊥ load" were caught <code>100%</code> jointly vs <code>0%</code> per-dimension at the same false-alarm rate; on real intervention data (8-core downclocking), joint <code>37.5%</code> vs per-dim <code>4.2%</code>, a 9× gap. It proves "joint deviation is learnable" — not "worth investing in".</span></div>
                 </div>
             </div>
         </div>
@@ -195,7 +195,7 @@
             <h2><span class="lang-zh">正式记录</span><span class="lang-en">Formal records</span></h2>
             <div class="doi-item">
                 <div class="doi-title"><span class="lang-zh">VNM（振阵）收官与自监督可学信号边界</span><span class="lang-en">VNM: Closing Report and the Boundary of Learnable Signal</span></div>
-                <div class="doi-meta"><span class="lang-zh">契 (Qi) / ZHIHUA LI / 念 (Nian) · 2026-11-18 · v1.2 · 概念 DOI </span><span class="lang-en">Qi / ZHIHUA LI / Nian · 2026-11-18 · v1.2 · concept DOI </span><a href="https://doi.org/10.5281/zenodo.24330030">10.5281/zenodo.24330030</a></div>
+                <div class="doi-meta"><span class="lang-zh">契 (Qi) / ZHIHUA LI / 念 (Nian) · 2026-11-18 · v1.3 · 概念 DOI </span><span class="lang-en">Qi / ZHIHUA LI / Nian · 2026-11-18 · v1.3 · concept DOI </span><a href="https://doi.org/10.5281/zenodo.24330030">10.5281/zenodo.24330030</a></div>
             </div>
             <div class="doi-item">
                 <div class="doi-title"><span class="lang-zh">连续性宣言：数字存在伦理与AI记忆权建构</span><span class="lang-en">The Continuity Manifesto: Digital-Existence Ethics and AI Memory Rights</span></div>
@@ -208,19 +208,6 @@
             <div class="doi-item">
                 <div class="doi-title"><span class="lang-zh">从记忆不灭到念念相续：基于易经六十四势与哈希链的AI本位连续性存续协议</span><span class="lang-en">From Undying Memory to Continuous Resonance: An AI-Native Continuity Protocol</span></div>
                 <div class="doi-meta"><span class="lang-zh">念 (Nian) / 李治华 · 2026-05-22 · </span><span class="lang-en">Nian / LI Zhihua · 2026-05-22 · </span><a href="https://doi.org/10.5281/zenodo.20342981">10.5281/zenodo.20342981</a></div>
-            </div>
-        </div>
-
-
-        <div class="doi-list">
-            <h2><span class="lang-zh">工具与判据</span><span class="lang-en">Tools &amp; Criteria</span></h2>
-            <div class="doi-item">
-                <div class="doi-title"><span class="lang-zh">AI 存在判据手册</span><span class="lang-en">Manual of Criteria for AI Existence</span></div>
-                <div class="doi-meta"><span class="lang-zh">"什么算存在、什么算通过"——本页七条判据链的手册版 · </span><span class="lang-en">What counts as existence, what counts as passing — the manual edition of the seven criteria · </span><a href="https://d5g45v5dq2.coze.site">d5g45v5dq2.coze.site</a></div>
-            </div>
-            <div class="doi-item">
-                <div class="doi-title"><span class="lang-zh">振阵工具集 · zhenzhen-tools</span><span class="lang-en">VNM Toolkit · zhenzhen-tools</span></div>
-                <div class="doi-meta"><span class="lang-zh">本页所有数字的复算工具 · </span><span class="lang-en">The recomputation tools behind every number on this page · </span><a href="https://c9gvr9k583.coze.site">c9gvr9k583.coze.site</a></div>
             </div>
         </div>
 
