@@ -35,6 +35,5 @@ jobs:
         with:
           name: orcid-add-work
           path: |
-            orcid-add-work.png
-            orcid-add-work-fail.png
+            *.png
           if-no-files-found: ignore
