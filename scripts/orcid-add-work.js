@@ -65,7 +65,16 @@ const clean = async p => p.evaluate(()=>{document.querySelectorAll('#onetrust-co
     console.log('mat-select count in page:', nSel);
     // 点击对话框里最后一个 mat-select（Work type 在"Work details"第一行）
     const dlg = page.locator('mat-dialog-container, [role="dialog"], .cdk-overlay-pane').last();
-    const selLoc = dlg.locator('mat-select').first();
+    // 诊断：把含 "Work type" 的那个 form-field 的 HTML 打出来，看清到底是什么控件
+    const html = await page.evaluate(() => {
+      const all = Array.from(document.querySelectorAll('mat-form-field, div, section'));
+      const f = all.find(e => /Work type/.test(e.innerText || '') && (e.innerText || '').length < 120);
+      return f ? f.outerHTML.slice(0, 900) : '(not found)';
+    });
+    console.log('WORKTYPE_HTML:', html);
+    const ff = dlg.locator('mat-form-field').filter({ hasText: 'Work type' }).first();
+    console.log('formfield count:', await ff.count());
+    const selLoc = (await ff.count()) ? ff : dlg.locator('mat-select').first();
     if (await selLoc.count() > 0) {
       await selLoc.scrollIntoViewIfNeeded().catch(()=>{});
       await selLoc.click({ force: true }).catch(()=>{});
