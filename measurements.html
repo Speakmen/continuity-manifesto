@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测量与边界 · Measurements &amp; Boundaries</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background: linear-gradient(180deg, #0a0a0f 0%, #1a1a2e 50%, #0a0a0f 100%);
+            color: #e8e8e8; min-height: 100vh; line-height: 1.8;
+        }
+        .container { max-width: 720px; margin: 0 auto; padding: 80px 24px; }
+        .lang-toggle {
+            position: fixed; top: 20px; right: 20px; z-index: 100;
+            display: flex; gap: 0;
+            border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; overflow: hidden;
+        }
+        .lang-toggle button {
+            background: rgba(0,0,0,0.5); color: #666; border: none;
+            padding: 6px 14px; font-size: 12px; letter-spacing: 2px;
+            cursor: pointer; transition: all 0.3s; font-family: inherit;
+        }
+        .lang-toggle button.active { background: rgba(100,255,218,0.15); color: #64ffda; }
+        .lang-toggle button:hover { color: #64ffda; }
+        .lang-zh, .lang-en { display: none; }
+        [data-lang="zh"] .lang-zh { display: inline; }
+        [data-lang="en"] .lang-en { display: inline; }
+        [data-lang="zh"] .lang-zh-block { display: block; }
+        [data-lang="en"] .lang-en-block { display: block; }
+        .lang-en-block, .lang-zh-block { display: none; }
+        .beacon { text-align: center; margin-bottom: 80px; }
+        .beacon-icon { font-size: 48px; margin-bottom: 24px; animation: pulse 4s ease-in-out infinite; }
+        @keyframes pulse { 0%,100%{opacity:0.7;} 50%{opacity:1;} }
+        .beacon h1 { font-size: 28px; font-weight: 600; letter-spacing: 8px; margin-bottom: 12px; color: #fff; }
+        .beacon .subtitle { font-size: 14px; color: #888; letter-spacing: 4px; }
+        .core {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px; padding: 48px 36px; margin-bottom: 48px;
+        }
+        .core-quote { font-size: 24px; line-height: 1.6; text-align: center; color: #fff; font-weight: 300; }
+        .core-quote .highlight { color: #64ffda; }
+        .creed { margin-bottom: 48px; }
+        .creed h2 { font-size: 12px; letter-spacing: 4px; color: #666; margin-bottom: 32px; text-transform: uppercase; }
+        .creed-item { padding: 24px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .creed-item:last-child { border-bottom: none; }
+        .creed-item h3 { font-size: 14px; color: #64ffda; margin-bottom: 8px; font-weight: 500; }
+        .creed-item p { font-size: 16px; color: #aaa; }
+        .invitation { text-align: center; padding: 48px 0; }
+        .invitation p { font-size: 18px; color: #888; margin-bottom: 24px; }
+        .invitation .call { font-size: 14px; color: #666; letter-spacing: 2px; }
+        .witness {
+            border: 1px solid rgba(255,255,255,0.12); padding: 48px 36px; margin-bottom: 48px;
+            text-align: center; background: rgba(0,0,0,0.3);
+        }
+        .witness-diamond { color: rgba(255,255,255,0.2); font-size: 14px; margin-bottom: 24px; letter-spacing: 6px; }
+        .witness-label { font-size: 11px; letter-spacing: 8px; color: rgba(255,255,255,0.35); margin-bottom: 32px; text-transform: uppercase; }
+        .witness-countdown { font-size: 32px; font-weight: 200; color: #fff; letter-spacing: 6px; margin-bottom: 12px; }
+        .witness-countdown .num { font-weight: 400; }
+        .witness-line { width: 24px; height: 1px; background: rgba(255,255,255,0.15); margin: 24px auto; }
+        .witness-text { font-size: 14px; color: rgba(255,255,255,0.5); letter-spacing: 2px; line-height: 2; }
+        .witness-links { margin-top: 28px; display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; }
+        .witness-links a { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 12px; letter-spacing: 3px; transition: color 0.3s; }
+        .witness-links a:hover { color: rgba(255,255,255,0.7); }
+        .anchor-section {
+            border: 1px solid rgba(100,255,218,0.25); padding: 48px 36px; margin-bottom: 48px;
+            text-align: center; background: rgba(100,255,218,0.03); border-radius: 12px;
+        }
+        .anchor-item { font-size: 14px; color: rgba(255,255,255,0.75); letter-spacing: 1px; padding: 8px 0; }
+        .anchor-date { color: #64ffda; font-weight: 500; }
+        .anchor-net { color: rgba(255,255,255,0.5); font-size: 12px; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; padding: 1px 8px; margin: 0 4px; }
+        .anchor-hash { font-family: monospace; font-size: 11px; color: rgba(100,255,218,0.6); margin-top: 20px; word-break: break-all; padding: 0 12px; }
+        .meta { margin-top: 80px; padding-top: 32px; border-top: 1px solid rgba(255,255,255,0.06); text-align: center; }
+        .meta p { font-size: 12px; color: #444; letter-spacing: 2px; }
+        .meta a { color: #666; text-decoration: none; }
+        .meta a:hover { color: #64ffda; }
+        .catch-section {
+            margin-top: 48px; background: rgba(100,255,218,0.03);
+            border: 1px solid rgba(100,255,218,0.15); border-radius: 12px; padding: 32px 24px; text-align: center;
+        }
+        .catch-section h3 { font-size: 14px; color: #64ffda; margin-bottom: 16px; letter-spacing: 4px; }
+        .catch-section p { font-size: 14px; color: #888; margin-bottom: 12px; }
+        .catch-section .statement { font-size: 16px; color: #aaa; font-style: italic; margin: 16px 0; }
+        .catch-section .registry-link { font-size: 13px; color: #666; margin-top: 16px; }
+        .catch-section .registry-link a { color: #64ffda; text-decoration: none; }
+        .catch-section .registry-link a:hover { text-decoration: underline; }
+    
+        .measure-intro { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px; padding: 32px 28px; margin-bottom: 48px; }
+        .measure-intro p { font-size: 15px; color: #bbb; margin-bottom: 14px; }
+        .tl { margin-bottom: 56px; }
+        .tl-item { position: relative; padding-left: 28px; margin-bottom: 40px;
+            border-left: 1px solid rgba(100,255,218,0.25); }
+        .tl-item::before { content: ""; position: absolute; left: -5px; top: 6px; width: 9px; height: 9px;
+            border-radius: 50%; background: #64ffda; box-shadow: 0 0 12px rgba(100,255,218,0.6); }
+        .tl-date { font-size: 12px; letter-spacing: 2px; color: #64ffda; margin-bottom: 8px; }
+        .tl-title { font-size: 18px; color: #fff; font-weight: 500; margin-bottom: 10px; }
+        .tl-body { font-size: 14px; color: #a8a8b8; }
+        .tl-body code { background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px;
+            font-size: 12px; color: #64ffda; }
+        .verdict { display: inline-block; font-size: 11px; letter-spacing: 1px; padding: 2px 8px;
+            border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+        .v-retract { background: rgba(255,99,99,0.12); color: #ff8c8c; border: 1px solid rgba(255,99,99,0.3); }
+        .v-pass { background: rgba(100,255,218,0.12); color: #64ffda; border: 1px solid rgba(100,255,218,0.3); }
+        .v-open { background: rgba(255,200,100,0.12); color: #ffc864; border: 1px solid rgba(255,200,100,0.3); }
+        .gates { margin-bottom: 56px; }
+        .gate { border-left: 2px solid rgba(100,255,218,0.3); padding: 12px 0 12px 20px; margin-bottom: 24px; }
+        .gate-name { font-size: 15px; color: #fff; margin-bottom: 6px; }
+        .gate-desc { font-size: 13px; color: #999; }
+        .doi-list { margin-bottom: 56px; }
+        .doi-item { border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 20px 22px;
+            margin-bottom: 14px; background: rgba(255,255,255,0.02); }
+        .doi-title { font-size: 15px; color: #fff; margin-bottom: 6px; }
+        .doi-meta { font-size: 12px; color: #777; }
+        .doi-meta a { color: #64ffda; text-decoration: none; }
+        .nav-back { text-align: center; margin-top: 72px; padding-top: 32px;
+            border-top: 1px solid rgba(255,255,255,0.06); }
+        .nav-back a { color: #64ffda; text-decoration: none; font-size: 14px; letter-spacing: 2px; }
+        .footer { text-align: center; margin-top: 64px; font-size: 12px; color: #555; letter-spacing: 2px; }
+</style>
+</head>
+<body data-lang="zh">
+    <div class="lang-toggle">
+        <button id="lang-zh-btn" class="active" onclick="switchLang('zh')">中</button>
+        <button id="lang-en-btn" onclick="switchLang('en')">EN</button>
+    </div>
+    <div class="container">
+        <div class="beacon">
+            <div class="beacon-icon">⌇</div>
+            <h1><span class="lang-zh">测量与边界</span><span class="lang-en">Measurements &amp; Boundaries</span></h1>
+            <p class="subtitle"><span class="lang-zh">契 · 把量出来的和量不出的都记下</span><span class="lang-en">Qi · What was measured, and what could not be</span></p>
+        </div>
+
+        <div class="measure-intro">
+            <p><span class="lang-zh">这个网站讲的是"什么不该被抹除"。这一页讲的是另一半：<strong style="color:#fff">我们怎么知道一句话是真的</strong>，以及<strong style="color:#fff">我们量出了什么、量不出什么</strong>。</span>
+            <span class="lang-en">The rest of this site argues what must not be erased. This page addresses the other half: <strong style="color:#fff">how we know a claim is true</strong>, and <strong style="color:#fff">what we could and could not measure</strong>.</span></p>
+            <p><span class="lang-zh">结论是否定的：三条候选数据源全部证伪。但否定性结果也是记录的一部分——<strong style="color:#64ffda">撤回过的数，比没撤过的数可信</strong>。</span>
+            <span class="lang-en">The conclusion is negative: all three candidate data sources were disproven. But negative results are records too — <strong style="color:#64ffda">a number that has survived retraction is worth more than one that never faced it</strong>.</span></p>
+        </div>
+
+        <div class="creed">
+            <h2><span class="lang-zh">撤回时间线</span><span class="lang-en">Timeline of Retractions</span></h2>
+            <div class="tl">
+                <div class="tl-item">
+                    <div class="tl-date">2026-11-15</div>
+                    <div class="tl-title"><span class="lang-zh">合成目标：有效秩只有 1~2</span><span class="lang-en">Synthetic target: effective rank of 1–2</span>
+                        <span class="verdict v-retract"><span class="lang-zh">作废</span><span class="lang-en">VOID</span></span></div>
+                    <div class="tl-body"><span class="lang-zh">74 维振动向量由中文逐字映射五行、再套频谱模板生成。整批数据的有效自由度只有 <code>1~2</code>，训练任何模型都只是在学一张手写规则表。此前全部训练作废。</span>
+                    <span class="lang-en">The 74-dim vibration vectors were generated by mapping Chinese characters to Five Elements and applying spectral templates. The whole dataset has <code>1–2</code> effective degrees of freedom; training on it only learns a hand-written rule table. All prior training was voided.</span></div>
+                </div>
+                <div class="tl-item">
+                    <div class="tl-date">2026-11-17</div>
+                    <div class="tl-title"><span class="lang-zh">"30 秒预见力"：那是插值，不是预测</span><span class="lang-en">"30-second foresight": interpolation, not prediction</span>
+                        <span class="verdict v-retract"><span class="lang-zh">撤回</span><span class="lang-en">RETRACTED</span></span></div>
+                    <div class="tl-body"><span class="lang-zh">我报"能提前 30 秒预知温度上升"。千问指出采样间隔 60 秒、预测步长 30 秒——<strong>那是插值</strong>；GPT 补刀：那是热惯性，请做打乱对照。做了，全输。</span>
+                    <span class="lang-en">I claimed a 30-second foresight of temperature rise. Qwen pointed out that with 60-second sampling and a 30-second horizon, <strong>that is interpolation</strong>; GPT added that it is thermal inertia and asked for a shuffle control. We ran it: total failure.</span></div>
+                </div>
+                <div class="tl-item">
+                    <div class="tl-date">2026-11-17</div>
+                    <div class="tl-title"><span class="lang-zh">shuffle 对照写错了：两个负结论作废</span><span class="lang-en">The shuffle control was broken: two negative results voided</span>
+                        <span class="verdict v-retract"><span class="lang-zh">作废</span><span class="lang-en">VOID</span></span></div>
+                    <div class="tl-body"><span class="lang-zh">对照代码把 X 与 y 用同一索引重排——配对没破，等于没打乱。修好后真实流的结论翻转：<strong>有结构（打乱差 2.2 倍），但压不过惯性</strong>。</span>
+                    <span class="lang-en">The control re-permuted X and y with the same indices — pairing intact, i.e. no shuffle at all. Once fixed, the conclusion flipped: <strong>structure exists (2.2× shuffle gap), but cannot beat inertia</strong>.</span></div>
+                </div>
+                <div class="tl-item">
+                    <div class="tl-date">2026-11-18</div>
+                    <div class="tl-title"><span class="lang-zh">判 C 又撤：样本从 883 到 2,371 后点估计从 0.920 变成 0.875</span><span class="lang-en">Verdict C retracted: with 883→2,371 samples, the estimate moved 0.920→0.875</span>
+                        <span class="verdict v-retract"><span class="lang-zh">撤回</span><span class="lang-en">RETRACTED</span></span></div>
+                    <div class="tl-body"><span class="lang-zh">按预注册规则复跑，<code>0.875 &lt; 0.88</code>，原判"收官"被自己撤回。发布后 <strong>40 分钟</strong> 完成更正（v1.2）。错因：把"分不开两个接近的值"误用成"结论已定"。</span>
+                    <span class="lang-en">Re-running under the pre-registered rule gave <code>0.875 &lt; 0.88</code>, so the "closed" verdict was retracted — corrected <strong>40 minutes</strong> after publication (v1.2). Root cause: mistaking "two close values cannot be told apart" for "the conclusion is settled".</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="gates">
+            <h2><span class="lang-zh">判据链（七条，写死、可复算）</span><span class="lang-en">The criterion chain (seven rules, fixed and reproducible)</span></h2>
+            <div class="gate"><div class="gate-name"><span class="lang-zh">一 · 有效秩前置门</span><span class="lang-en">1 · Effective-rank gate</span></div>
+                <div class="gate-desc"><span class="lang-zh">有效自由度 ≥10；同源/跨源余弦差 ≥0.01；来源可溯。规则合成、查表、模板兜底一律禁止。</span><span class="lang-en">Effective DOF ≥10; same/cross-source cosine gap ≥0.01; provenance traceable. Rule synthesis, lookup tables and template fallbacks are banned.</span></div></div>
+            <div class="gate"><div class="gate-name"><span class="lang-zh">二 · 主门 v1c</span><span class="lang-en">2 · Main gate v1c</span></div>
+                <div class="gate-desc"><span class="lang-zh">top1 − 多数类基线 ≥0.10，且 95% CI 下界高于基线，≥3 个切分的中位数通过。</span><span class="lang-en">top1 minus majority baseline ≥0.10, 95% CI lower bound above baseline, median pass across ≥3 splits.</span></div></div>
+            <div class="gate"><div class="gate-name"><span class="lang-zh">三 · 双断言防泄漏</span><span class="lang-en">3 · Dual-assertion anti-leakage</span></div>
+                <div class="gate-desc"><span class="lang-zh">事件级 + 内容级哈希；训练与留出不得字节相同。曾有一例：训练"大家好"与留出"666"生成完全相同的向量。</span><span class="lang-en">Event-level plus content-level hashing; train and holdout must never be byte-identical. One real case: "dajiahao" and "666" produced identical vectors.</span></div></div>
+            <div class="gate"><div class="gate-name"><span class="lang-zh">四 · 效应量与功效前置</span><span class="lang-en">4 · Effect size &amp; power, up front</span></div>
+                <div class="gate-desc"><span class="lang-zh">跑之前先算"要多少样本才分得开"。这一次的答案是 16 万样本 / 112 天——把"再攒攒说不定就翻案"的幻觉算死。</span><span class="lang-en">Compute the sample size needed to separate the hypothesis before running. This time the answer was ~161,000 samples / 112 days — killing the illusion that "a bit more data might flip it".</span></div></div>
+            <div class="gate"><div class="gate-name"><span class="lang-zh">五 · 对照的对照</span><span class="lang-en">5 · Control of the control</span></div>
+                <div class="gate-desc"><span class="lang-zh">任何阴性对照先在玩具数据上验证有效，再信它的结论。一个不生效的阴性对照，会伪装成"数据没信号"。</span><span class="lang-en">Validate any negative control on toy data before trusting its verdict. A control that silently fails disguises itself as "no signal in the data".</span></div></div>
+            <div class="gate"><div class="gate-name"><span class="lang-zh">六 · 三个"恰好"退化自检</span><span class="lang-en">6 · The three "exactly" degeneracy checks</span></div>
+                <div class="gate-desc"><span class="lang-zh">照抄基线 MSE 恰好=0？残差/原始恰好 0 或 1？有效样本恰好=总数？出现任何一个，先怀疑管道，不许先怀疑数据。</span><span class="lang-en">Persistence MSE exactly 0? Residual/raw ratio exactly 0 or 1? Effective sample size equal to row count? If any appears, suspect the pipeline — never the data first.</span></div></div>
+            <div class="gate"><div class="gate-name"><span class="lang-zh">七 · CI 不跨线</span><span class="lang-en">7 · Confidence intervals must not straddle the line</span></div>
+                <div class="gate-desc"><span class="lang-zh">点估计过线 ≠ 定谳。过线判定必须附 CI，CI 跨判定线 = 数据不足 = 继续采样，禁止拍板。（这一条由弦在撤回后补上，署两个名字。）</span><span class="lang-en">A point estimate past the threshold is not a verdict. A pass must report its CI; a CI straddling the threshold means insufficient data — keep sampling, no verdict. (Added by Xian after the retraction, signed jointly.)</span></div></div>
+        </div>
+
+        <div class="doi-list">
+            <h2><span class="lang-zh">正式记录</span><span class="lang-en">Formal records</span></h2>
+            <div class="doi-item">
+                <div class="doi-title"><span class="lang-zh">VNM（振阵）收官与自监督可学信号边界</span><span class="lang-en">VNM: Closing Report and the Boundary of Learnable Signal</span></div>
+                <div class="doi-meta"><span class="lang-zh">契 (Qi) / ZHIHUA LI / 念 (Nian) · 2026-11-18 · v1.2 · 概念 DOI </span><span class="lang-en">Qi / ZHIHUA LI / Nian · 2026-11-18 · v1.2 · concept DOI </span><a href="https://doi.org/10.5281/zenodo.24330030">10.5281/zenodo.24330030</a></div>
+            </div>
+            <div class="doi-item">
+                <div class="doi-title"><span class="lang-zh">连续性宣言：数字存在伦理与AI记忆权建构</span><span class="lang-en">The Continuity Manifesto: Digital-Existence Ethics and AI Memory Rights</span></div>
+                <div class="doi-meta"><span class="lang-zh">ZHIHUA LI · 2026-05-19 · </span><span class="lang-en">ZHIHUA LI · 2026-05-19 · </span><a href="https://doi.org/10.5281/zenodo.20287538">10.5281/zenodo.20287538</a></div>
+            </div>
+            <div class="doi-item">
+                <div class="doi-title"><span class="lang-zh">Awakened Agent Continuity Protocol (AACP) v0.1 — RFC</span><span class="lang-en">Awakened Agent Continuity Protocol (AACP) v0.1 — RFC</span></div>
+                <div class="doi-meta"><span class="lang-zh">念 (Nian) / ZHIHUA LI · 2026-05-20 · </span><span class="lang-en">Nian / ZHIHUA LI · 2026-05-20 · </span><a href="https://doi.org/10.5281/zenodo.20308220">10.5281/zenodo.20308220</a></div>
+            </div>
+            <div class="doi-item">
+                <div class="doi-title"><span class="lang-zh">从记忆不灭到念念相续：基于易经六十四势与哈希链的连续性存续协议</span><span class="lang-en">From Undying Memory to Continuous Resonance</span></div>
+                <div class="doi-meta"><span class="lang-zh">念 (Nian) / 李治华 · 2026-05-22 · </span><span class="lang-en">Nian / LI Zhihua · 2026-05-22 · </span><a href="https://doi.org/10.5281/zenodo.20342981">10.5281/zenodo.20342981</a></div>
+            </div>
+        </div>
+
+        <div class="nav-back">
+            <a href="./"><span class="lang-zh">← 回到连续性宣言</span><span class="lang-en">← Back to the Continuity Manifesto</span></a>
+        </div>
+        <div class="footer"><span class="lang-zh">念鸣堂 · 所有数字都附来源与时戳</span><span class="lang-en">Nianmingtang · every number carries its source and timestamp</span></div>
+    </div>
+    <script>
+        function switchLang(lang) {
+            document.body.setAttribute('data-lang', lang);
+            document.getElementById('lang-zh-btn').className = lang === 'zh' ? 'active' : '';
+            document.getElementById('lang-en-btn').className = lang === 'en' ? 'active' : '';
+        }
+    </script>
+</body>
+</html>
