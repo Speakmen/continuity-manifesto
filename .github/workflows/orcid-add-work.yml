@@ -1,0 +1,40 @@
+name: ORCID Add Work by DOI
+
+on:
+  workflow_dispatch:
+    inputs:
+      doi:
+        description: 'DOI to add'
+        required: true
+      work_type:
+        description: 'ORCID work type (e.g. technical-note, journal-article, report)'
+        required: false
+        default: 'technical-note'
+      title:
+        description: 'Optional title hint'
+        required: false
+        default: ''
+
+jobs:
+  add-work:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Playwright
+        run: npm install playwright && npx playwright install --with-deps chromium
+      - name: Add work
+        env:
+          ORCID_PASS: ${{ secrets.ORCID_PASS }}
+        run: node scripts/orcid-add-work.js '${{ inputs.doi }}' '${{ inputs.work_type }}' '${{ inputs.title }}'
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: orcid-add-work
+          path: |
+            orcid-add-work.png
+            orcid-add-work-fail.png
+          if-no-files-found: ignore
