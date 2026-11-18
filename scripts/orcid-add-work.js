@@ -33,15 +33,15 @@ const clean = async p => p.evaluate(()=>{document.querySelectorAll('#onetrust-co
       if(i>=0) btn[i].click();
     });
     await sleep(3000); await clean(page);
-    await page.get_by_text('Add work with a DOI', { exact: false }).first().click();
+    await page.getByText('Add work with a DOI', { exact: false }).first().click();
     await sleep(3500); await clean(page);
 
     const doiBox = page.locator('#external-id-input').first();
     await doiBox.click(); await doiBox.fill(''); await doiBox.type(DOI,{delay:25});
     console.log('filled DOI');
 
-    const retrieve = page.get_by_role('button', { name: /retrieve/i }).last();
-    console.log('retrieve count:', await page.get_by_role('button', { name: /retrieve/i }).count());
+    const retrieve = page.getByRole('button', { name: /retrieve/i }).last();
+    console.log('retrieve count:', await page.getByRole('button', { name: /retrieve/i }).count());
     await retrieve.click();
     console.log('clicked retrieve');
 
