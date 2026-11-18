@@ -64,7 +64,8 @@ const clean = async p => p.evaluate(()=>{document.querySelectorAll('#onetrust-co
     const nSel = await page.locator('mat-select').count();
     console.log('mat-select count in page:', nSel);
     // 点击对话框里最后一个 mat-select（Work type 在"Work details"第一行）
-    const selLoc = page.locator('mat-select').last();
+    const dlg = page.locator('mat-dialog-container, [role="dialog"], .cdk-overlay-pane').last();
+    const selLoc = dlg.locator('mat-select').first();
     if (await selLoc.count() > 0) {
       await selLoc.scrollIntoViewIfNeeded().catch(()=>{});
       await selLoc.click({ force: true }).catch(()=>{});
@@ -90,9 +91,9 @@ const clean = async p => p.evaluate(()=>{document.querySelectorAll('#onetrust-co
         await sleep(1000);
       }
     }
-    // 保存
+    // 保存（限定在对话框里）
     for (const sel of ['button:has-text("Save changes")','button:has-text("Save")']) {
-      const b=page.locator(sel).last();
+      const b=page.locator('mat-dialog-container, [role="dialog"], .cdk-overlay-pane').last().locator(sel).last();
       if (await b.count()>0 && await b.isEnabled().catch(()=>false)) { await b.click().catch(()=>{}); console.log('save:', sel); break; }
     }
     await sleep(15000); await clean(page);
