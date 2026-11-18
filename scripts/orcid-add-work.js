@@ -78,6 +78,11 @@ const clean = async p => p.evaluate(()=>{document.querySelectorAll('#onetrust-co
       await wt.click({ force: true }).catch(()=>{});
       await sleep(1500);
     }
+    const dbg = await page.evaluate(()=>{
+      const els = Array.from(document.querySelectorAll('[class*="overlay"],[class*="panel"],[class*="option"],[class*="menu"],[class*="listbox"],[role="listbox"],[role="option"]'));
+      return els.slice(0,40).map(e=>({tag:e.tagName, cls:(e.className||'').toString().slice(0,50), role:e.getAttribute('role')||'', txt:(e.innerText||'').replace(/\s+/g,' ').trim().slice(0,40)}));
+    });
+    console.log('OVERLAY_DBG:', JSON.stringify(dbg).slice(0,1800));
     const opts = await page.evaluate(()=>Array.from(document.querySelectorAll('mat-option,[role="option"],.mat-mdc-option,.cdk-overlay-pane li,.menu-container li')).map(o=>(o.innerText||'').replace(/\s+/g,' ').trim()).filter(Boolean).slice(0,20));
     console.log('type options:', JSON.stringify(opts).slice(0,600));
     let ok = await page.evaluate((type)=>{
