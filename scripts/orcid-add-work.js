@@ -69,20 +69,37 @@ const clean = async p => p.evaluate(()=>{document.querySelectorAll('#onetrust-co
     console.log('cy-work-types count:', await wt.count());
     const input = page.locator('#cy-work-types input').first();
     console.log('inner input count:', await input.count());
+    const dumpWT = async (tag) => {
+      const h = await page.evaluate(() => {
+        const el = document.querySelector('#cy-work-types');
+        return el ? el.outerHTML.slice(0, 2500) : '(none)';
+      });
+      console.log('WT_HTML[' + tag + ']:', h);
+      const popup = await page.evaluate(() => {
+        const els = Array.from(document.querySelectorAll('[role="listbox"],[role="option"],mat-option,.deep-select-panel,.select-panel,.dropdown-panel,.menu-panel'));
+        return els.map(e => ({ role: e.getAttribute('role') || '', cls: (e.className||'').toString().slice(0,40), txt: (e.innerText||'').replace(/\s+/g,' ').trim().slice(0,50) })).slice(0, 15);
+      });
+      console.log('POPUP[' + tag + ']:', JSON.stringify(popup).slice(0, 800));
+    };
     if (await input.count() > 0) {
       await input.click({ force: true }).catch(()=>{});
-      await sleep(1200);
-      await input.type(TYPE.slice(0, 8), { delay: 60 }).catch(()=>{});
       await sleep(1500);
+      await dumpWT('after-click');
+      await page.keyboard.press('ArrowDown').catch(()=>{});
+      await sleep(1200);
+      await dumpWT('after-arrowdown');
+      await page.keyboard.press('Space').catch(()=>{});
+      await sleep(1200);
+      await dumpWT('after-space');
+      await page.screenshot({ path: 'orcid-wt.png', fullPage: true }).catch(()=>{});
+      await input.type(TYPE.slice(0, 8), { delay: 60 }).catch(()=>{});
+      await sleep(2000);
+      await dumpWT('after-type');
     } else {
       await wt.click({ force: true }).catch(()=>{});
       await sleep(1500);
+      await dumpWT('after-click-wt');
     }
-    const dbg = await page.evaluate(()=>{
-      const els = Array.from(document.querySelectorAll('[class*="overlay"],[class*="panel"],[class*="option"],[class*="menu"],[class*="listbox"],[role="listbox"],[role="option"]'));
-      return els.slice(0,40).map(e=>({tag:e.tagName, cls:(e.className||'').toString().slice(0,50), role:e.getAttribute('role')||'', txt:(e.innerText||'').replace(/\s+/g,' ').trim().slice(0,40)}));
-    });
-    console.log('OVERLAY_DBG:', JSON.stringify(dbg).slice(0,1800));
     const opts = await page.evaluate(()=>Array.from(document.querySelectorAll('mat-option,[role="option"],.mat-mdc-option,.cdk-overlay-pane li,.menu-container li')).map(o=>(o.innerText||'').replace(/\s+/g,' ').trim()).filter(Boolean).slice(0,20));
     console.log('type options:', JSON.stringify(opts).slice(0,600));
     let ok = await page.evaluate((type)=>{
