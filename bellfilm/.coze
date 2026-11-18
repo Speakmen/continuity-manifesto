@@ -1,0 +1,17 @@
+[project]
+project_id = "7705994960222470163"
+app_id = "7706023886294499391"
+project_name = "振阵"
+project_type = "game"
+requires = ["nodejs-24"]
+game_type = "phaser"
+port = 36502
+
+[dev]
+build = ["bash", "./scripts/prepare.sh"]
+run = ["bash", "./scripts/dev.sh"]
+validate = ["bash", "./scripts/validate.sh"]
+
+[deploy]
+build = ["bash", "./scripts/build.sh"]
+run = ["bash", "./scripts/start.sh"]

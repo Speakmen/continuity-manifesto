@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "id": "title-background-v1",
+  "type": "image",
+  "name": "振阵标题背景",
+  "task": {
+    "id": "title-bg-run1",
+    "status": "succeeded"
+  },
+  "properties": {},
+  "sources": [
+    "assets/image/production-visual-target-v1"
+  ]
+}

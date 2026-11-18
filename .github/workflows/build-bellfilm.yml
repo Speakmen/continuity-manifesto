@@ -1,0 +1,65 @@
+name: build-bellfilm
+
+on:
+  push:
+    paths:
+      - "bellfilm/**"
+      - ".github/workflows/build-bellfilm.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-bellfilm
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      COZE_PHASER_PREPARE_OK: "1"
+      npm_config_registry: https://registry.npmjs.org
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: bellfilm/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: bellfilm
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate (image sizing + typecheck)
+        working-directory: bellfilm
+        run: pnpm validate
+
+      - name: Production build
+        working-directory: bellfilm
+        run: pnpm exec vite build
+
+      - name: Publish dist to bellfilm-site/
+        run: |
+          rm -rf bellfilm-site
+          mkdir -p bellfilm-site
+          cp -r bellfilm/dist/. bellfilm-site/
+          touch bellfilm-site/.nojekyll
+
+      - name: Commit published build
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bellfilm-site
+          if git diff --cached --quiet; then
+            echo "No changes to publish."
+          else
+            git commit -m "bellfilm: publish production build [skip ci]"
+            git push
+          fi
