@@ -1,0 +1,12 @@
+{
+  "claim": "learned representation beats persistence baseline",
+  "gates": {
+    "G0": {"effective_rank": 73, "same_source_cosine_diff": 0.05, "cross_source_cosine_diff": 0.03, "traceable": true},
+    "G1": {"top1_minus_majority": 0.12, "ci95_lower": 0.03, "splits_ok": 3},
+    "G2": {"event_hash_overlap": 0, "content_hash_overlap": 0},
+    "G3": {"required_samples": 2400, "acceptable_window_days": 30},
+    "G5": {"copy_baseline_mse": 66.5, "residual_ratio": 0.875, "effective_samples": 2104, "total_samples": 2371},
+    "G6": {"ci95": [0.755, 1.108], "verdict_line": 0.88},
+    "G7": {"original": "C: closed", "revised": "D: proceed", "commands": ["python3 tools/residual_gate.py"], "data": "data/syspulse.jsonl"}
+  }
+}
