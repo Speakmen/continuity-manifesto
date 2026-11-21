@@ -1,0 +1,122 @@
+{
+  "name": "Ten-Gate Criteria Chain",
+  "name_zh": "十条判据链",
+  "version": "1.0",
+  "source": "10.5281/zenodo.24367781",
+  "purpose": "在宣称一个学习/评测结论成立之前，逐条自检；缺任何一条都必须标为 insufficient evidence",
+  "gates": [
+    {
+      "id": "G0",
+      "name": "effective_rank_gate",
+      "name_zh": "有效秩前置门",
+      "checks": [
+        "effective_rank >= 10",
+        "same_source_cosine_diff >= 0.01",
+        "cross_source_cosine_diff >= 0.01",
+        "every_feature_traceable"
+      ],
+      "fail_meaning": "目标本身不可学，不要开始训练"
+    },
+    {
+      "id": "G1",
+      "name": "main_gate_v1c",
+      "name_zh": "主门 v1c",
+      "checks": [
+        "top1_minus_majority >= 0.10",
+        "ci95_lower > baseline",
+        "median_over_3_splits meets all above"
+      ],
+      "fail_meaning": "分数可能只是抖动，不是优势"
+    },
+    {
+      "id": "G2",
+      "name": "dual_assertion",
+      "name_zh": "双断言防泄漏",
+      "checks": [
+        "event_hash_overlap == 0",
+        "content_hash_overlap == 0"
+      ],
+      "fail_meaning": "分数虚高，泄漏未排除"
+    },
+    {
+      "id": "G3",
+      "name": "power_precheck",
+      "name_zh": "功效前置",
+      "checks": [
+        "required_test_samples_estimated",
+        "required_samples <= acceptable_collection_window * 10"
+      ],
+      "fail_meaning": "永远差一点点，不要用'分不开'当结论"
+    },
+    {
+      "id": "G4",
+      "name": "control_of_control",
+      "name_zh": "对照的对照",
+      "checks": [
+        "negative_control_validated_on_toy_data",
+        "positive_control_validated_on_toy_data"
+      ],
+      "fail_meaning": "你的对照本身可能坏了，通过它不代表任何事"
+    },
+    {
+      "id": "G5",
+      "name": "three_exactly",
+      "name_zh": "三个恰好退化自检",
+      "checks": [
+        "copy_baseline_mse != 0",
+        "residual_ratio not in {0,1}",
+        "effective_samples != total_samples"
+      ],
+      "fail_meaning": "出现了退化情形，指标无意义"
+    },
+    {
+      "id": "G6",
+      "name": "ci_not_straddling",
+      "name_zh": "CI 不跨线",
+      "checks": [
+        "ci95_reported",
+        "ci95 does not straddle verdict_line"
+      ],
+      "fail_meaning": "区间里住着两个相反的世界，此时拍板就是赌"
+    },
+    {
+      "id": "G7",
+      "name": "recomputation_path",
+      "name_zh": "重算路径可复算",
+      "checks": [
+        "original_conclusion_stated",
+        "revised_conclusion_stated",
+        "exact_commands_given",
+        "data_and_split_specified"
+      ],
+      "fail_meaning": "撤回变成新悬案；声明不等于更正"
+    },
+    {
+      "id": "G8",
+      "name": "publish_gate",
+      "name_zh": "发布判据",
+      "layers": [
+        "if CI clean: point estimate over line is enough",
+        "if CI straddles: require (action reversible and near-zero rollback cost) OR (both sides of the line above minimum usable level)"
+      ],
+      "fail_meaning": "不该发的发了，会不可逆地污染公开记录"
+    },
+    {
+      "id": "G9",
+      "name": "pre_flight_three",
+      "name_zh": "动手前三问",
+      "questions": [
+        "is the signal capturable without learning? (effective rank<5 stop; shuffle-retrain must separate)",
+        "how much does the trivial baseline leave? (learning must beat it by >=10%)",
+        "can samples separate? (required test samples > 10x acceptable window -> stop)"
+      ],
+      "fail_meaning": "钱和三个月会花在一个题本身不值钱的地方"
+    }
+  ],
+  "verdicts": [
+    "pass",
+    "questionable",
+    "fail",
+    "insufficient_evidence"
+  ]
+}
