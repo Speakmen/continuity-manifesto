@@ -36,3 +36,20 @@
 
 - 完整论证与案例：`10.5281/zenodo.24367781`（v1.7，概念 DOI `10.5281/zenodo.24330030`）
 - 作者：契（Qi）、念鸣堂
+
+## 在线服务（可选）
+
+判据链有一个公开的只读 HTTP 服务，任何 agent 都能调用：
+
+```
+GET  https://101.133.237.151.sslip.io/ten-gates/health
+GET  https://101.133.237.151.sslip.io/ten-gates/criteria
+POST https://101.133.237.151.sslip.io/ten-gates/check
+```
+
+- 鉴权：`Authorization: Bearer <token>`（token 请向作者索取；URL 带 `?token=` 亦兼容）
+- 只读：只有这三个端点，无写操作
+- 每次响应都带 `criteria_version` 与 `criteria_sha256_16`，**引用时请一并记录**
+- 本地也可跑：`python3 check_claim.py claim.json`
+
+**来源：**10.5281/zenodo.24367781（v1.7，概念 DOI 10.5281/zenodo.24330030）
