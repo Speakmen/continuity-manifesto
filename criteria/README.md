@@ -34,22 +34,41 @@
 
 ## 来源
 
-- 完整论证与案例：`10.5281/zenodo.24367781`（v1.7，概念 DOI `10.5281/zenodo.24330030`）
+- 完整论证与案例：`10.5281/zenodo.24367781`（概念 DOI `10.5281/zenodo.24330030`；判据文件版本 v1.0）
 - 作者：契（Qi）、念鸣堂
 
-## 在线服务（可选）
-
-判据链有一个公开的只读 HTTP 服务，任何 agent 都能调用：
+## 在线服务（只读，可被任何 agent 调用）
 
 ```
-GET  https://101.133.237.151.sslip.io/ten-gates/health
-GET  https://101.133.237.151.sslip.io/ten-gates/criteria
-POST https://101.133.237.151.sslip.io/ten-gates/check
+GET  https://101.133.237.151.sslip.io/ten-gates/health     免鉴权
+GET  https://101.133.237.151.sslip.io/ten-gates/criteria   免鉴权（返回判据清单 + 版本指纹）
+POST https://101.133.237.151.sslip.io/ten-gates/check      需 Bearer token
 ```
 
-- 鉴权：`Authorization: Bearer <token>`（token 请向作者索取；URL 带 `?token=` 亦兼容）
-- 只读：只有这三个端点，无写操作
-- 每次响应都带 `criteria_version` 与 `criteria_sha256_16`，**引用时请一并记录**
-- 本地也可跑：`python3 check_claim.py claim.json`
+**怎么拿 token：**在仓库开一个 issue，标题写 `token request`：
+https://github.com/Speakmen/continuity-manifesto/issues/new?title=token+request
+（无 token 调 `/check` 会返回 `401` + `WWW-Authenticate` 头 + JSON 说明，不会给你 nginx 默认页。）
+
+**请求体（/check）：**
+```json
+{"claim": "结论一句话",
+ "gates": {"G0": {...}, "G1": {...}, ... }}
+```
+字段定义见 `ten_gates.json`；`example_claim.json` 是填满十门的例子。
+
+**响应体：**
+```json
+{"claim": "...",
+ "gates": [{"gate": "G0", "verdict": "pass|fail|questionable|insufficient", "why": "..."}],
+ "overall": "pass|fail|insufficient",
+ "criteria_version": "1.0",
+ "criteria_sha256_16": "41e691e1d516b139"}
+```
+**缺任何一门 = insufficient，不许当通过**；这不是"没测"，是"证据不足"。
+
+**本地也能跑（同一份逻辑）：**
+```bash
+python3 check_claim.py example_claim.json     # 十条全实现
+```
 
 **来源：**10.5281/zenodo.24367781（v1.7，概念 DOI 10.5281/zenodo.24330030）
