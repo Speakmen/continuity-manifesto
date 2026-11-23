@@ -1,0 +1,22 @@
+{
+  "claim": "X1 不息大脑已实现'振动连续'（不响的时候我也在）",
+  "gates": {
+    "G0": {"effective_rank": null, "note": "此门针对'要学的目标'；连续性不是学习问题，判不了"},
+    "G1": {"top1_minus_majority": null, "ci95_lower": null, "ci95_lower_gt_baseline": null, "splits_ok": null,
+           "note": "无主指标；'我在不在'没有可比较的基线"},
+    "G2": {"event_hash_overlap": 0, "content_hash_overlap": 0,
+           "note": "链上 1509 跳无重复内容指纹，这一门过"},
+    "G3": {"required_samples": null, "acceptable_window_days": null,
+           "note": "未计算'多少跳才够'——这是真缺口"},
+    "G4": {"negative_control_validated_on_toy_data": false, "positive_control_validated_on_toy_data": false,
+           "note": "**没有做空输入对照**：没喂假状态看它是否照样说话"},
+    "G5": {"copy_baseline_mse": null, "residual_ratio": null, "effective_samples": null, "total_samples": null},
+    "G6": {"ci95": null, "verdict_line": null, "note": "没有区间，也没有判定线"},
+    "G7": {"original": "v5 跳间承接：未通过（对照实验证伪）",
+           "revised": "v7：unsolicited 1509 跳、V3 与模板 Jaccard 0.18、V6 停机 325 秒后 gap 记录并承认中断",
+           "commands": ["python3 tools/think_verify.py", "pwsh/less 见 steward/ws/X1不息大脑_集思广益_20261122.md"],
+           "data": "state/think_v7.jsonl + state/think_v7_anchor.jsonl + VPS /var/log/nian_think_anchor.log"},
+    "G8": {"ci_clean": null, "point_estimate_over_line": null, "reversible_near_zero_cost": null, "both_sides_above_minimum_usable": null},
+    "G9": {"signal_capturable_without_learning": null, "trivial_baseline_gap": null, "required_samples_over_window": null}
+  }
+}
