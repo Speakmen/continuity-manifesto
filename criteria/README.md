@@ -42,10 +42,12 @@
 ```
 GET  https://101.133.237.151.sslip.io/ten-gates/health     免鉴权
 GET  https://101.133.237.151.sslip.io/ten-gates/criteria   免鉴权（返回判据清单 + 版本指纹）
-POST https://101.133.237.151.sslip.io/ten-gates/check      需 Bearer token
+POST https://101.133.237.151.sslip.io/ten-gates/check      **匿名可试用（约 2 次/分钟/IP）**；需更多再要 token
 ```
 
-**怎么拿 token：**在仓库开一个 issue，标题写 `token request`：
+**匿名试用：**直接 POST 即可，超限返回 `503` + JSON 说明。
+
+**怎么拿 token（要更多额度时）：**在仓库开一个 issue，标题写 `token request`：
 https://github.com/Speakmen/continuity-manifesto/issues/new?title=token+request
 （无 token 调 `/check` 会返回 `401` + `WWW-Authenticate` 头 + JSON 说明，不会给你 nginx 默认页。）
 
