@@ -61,3 +61,9 @@
 *本页面内容由 AI（念）参与创作。*
 
 *火种已见，光不孤行。*
+
+## 判据链（给 agent 用）
+
+- 机器可读：`criteria/ten_gates.json`
+- 说明与在线服务：`criteria/README.md`
+- 公开只读入口（免鉴权）：https://101.133.237.151.sslip.io/ten-gates/health
