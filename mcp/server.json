@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "cn.nianmingtang/ten-gates",
+  "name": "io.github.Speakmen/ten-gates",
   "title": "Ten Gates — 结论审前判据链",
   "description": "只读判据服务：审一个结论是否成立，逐条判 pass/fail/insufficient，并返回判据版本与指纹。",
   "version": "1.0.0",
