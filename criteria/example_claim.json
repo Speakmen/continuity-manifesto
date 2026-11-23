@@ -1,12 +1,61 @@
 {
   "claim": "learned representation beats persistence baseline",
   "gates": {
-    "G0": {"effective_rank": 73, "same_source_cosine_diff": 0.05, "cross_source_cosine_diff": 0.03, "traceable": true},
-    "G1": {"top1_minus_majority": 0.12, "ci95_lower": 0.03, "splits_ok": 3},
-    "G2": {"event_hash_overlap": 0, "content_hash_overlap": 0},
-    "G3": {"required_samples": 2400, "acceptable_window_days": 30},
-    "G5": {"copy_baseline_mse": 66.5, "residual_ratio": 0.875, "effective_samples": 2104, "total_samples": 2371},
-    "G6": {"ci95": [0.755, 1.108], "verdict_line": 0.88},
-    "G7": {"original": "C: closed", "revised": "D: proceed", "commands": ["python3 tools/residual_gate.py"], "data": "data/syspulse.jsonl"}
+    "G0": {
+      "effective_rank": 73,
+      "same_source_cosine_diff": 0.05,
+      "cross_source_cosine_diff": 0.03,
+      "traceable": true
+    },
+    "G1": {
+      "top1_minus_majority": 0.12,
+      "ci95_lower": 0.03,
+      "ci95_lower_gt_baseline": true,
+      "splits_ok": 3
+    },
+    "G2": {
+      "event_hash_overlap": 0,
+      "content_hash_overlap": 0
+    },
+    "G3": {
+      "required_samples": 2400,
+      "acceptable_window_days": 30
+    },
+    "G4": {
+      "negative_control_validated_on_toy_data": true,
+      "positive_control_validated_on_toy_data": true
+    },
+    "G5": {
+      "copy_baseline_mse": 66.5,
+      "residual_ratio": 0.875,
+      "effective_samples": 2104,
+      "total_samples": 2371
+    },
+    "G6": {
+      "ci95": [
+        0.755,
+        1.108
+      ],
+      "verdict_line": 0.88
+    },
+    "G7": {
+      "original": "C: closed",
+      "revised": "D: proceed",
+      "commands": [
+        "python3 tools/residual_gate.py"
+      ],
+      "data": "data/syspulse.jsonl"
+    },
+    "G8": {
+      "ci_clean": false,
+      "point_estimate_over_line": true,
+      "reversible_near_zero_cost": false,
+      "both_sides_above_minimum_usable": false
+    },
+    "G9": {
+      "signal_capturable_without_learning": false,
+      "trivial_baseline_gap": 0.15,
+      "required_samples_over_window": false
+    }
   }
 }
