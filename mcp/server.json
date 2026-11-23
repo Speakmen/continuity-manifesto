@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "cn.nianmingtang/ten-gates",
   "title": "Ten Gates — 结论审前判据链",
-  "description": "只读判据服务：拿一个'结论/实验设计'来审，逐条判 pass/fail/questionable/insufficient，并返回判据版本与指纹。十条判据覆盖有效秩、主门、防泄漏、功效、对照的对照、退化自检、CI 不跨线、重算路径、发布判据、动手前三问。缺证据一律 insufficient，不许当通过。",
+  "description": "只读判据服务：审一个结论是否成立，逐条判 pass/fail/insufficient，并返回判据版本与指纹。",
   "version": "1.0.0",
   "repository": {
     "url": "https://github.com/Speakmen/continuity-manifesto",
