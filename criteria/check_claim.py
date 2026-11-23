@@ -32,15 +32,58 @@ def _g5_not_degenerate(g):
         problems.append("有效样本=总数")
     return (not problems), "；".join(problems)
 
+def _g4_controls_validated(g):
+    problems = []
+    if g.get("negative_control_validated_on_toy_data") is not True:
+        problems.append("负对照未在玩具数据上验证")
+    if g.get("positive_control_validated_on_toy_data") is not True:
+        problems.append("正对照未在玩具数据上验证")
+    return (not problems), "；".join(problems)
+
+
+def _g8_publish_ok(g):
+    """发布判据（两层）：
+    · CI 干净 → 点估计过线即可发
+    · CI 跨线 → 必须 (可逆且回滚近零成本) 或 (两侧真值均 ≥ 最低可用线)
+    """
+    if g.get("ci_clean") is True:
+        if g.get("point_estimate_over_line") is True:
+            return True, ""
+        return False, "CI 干净但点估计未过线"
+    if g.get("ci_clean") is False:
+        if g.get("reversible_near_zero_cost") is True:
+            return True, ""
+        if g.get("both_sides_above_minimum_usable") is True:
+            return True, ""
+        return False, "CI 跨线且既不可逆、两侧也未达最低可用线——不该发"
+    # 未声明 CI 是否干净 = 缺证据，不许当通过
+    return False, "缺 ci_clean（不许默认通过）"
+
+
+def _g9_pre_flight_ok(g):
+    problems = []
+    if g.get("signal_capturable_without_learning") is True:
+        problems.append("信号不学也能拿到（有效秩不足/打乱重训可分）——题不值")
+    if g.get("trivial_baseline_gap") is not None and g["trivial_baseline_gap"] < 0.10:
+        problems.append("学习没比平凡基线好 ≥10%")
+    if g.get("required_samples_over_window") is True:
+        problems.append("所需样本 > 可接受窗口 10 倍——停")
+    return (not problems), "；".join(problems)
+
+
 RULES = {
     "G0": [("effective_rank", lambda v: (v is not None and v >= 10), "有效秩 ≥10")],
     "G1": [("top1_minus_majority", lambda v: (v is not None and v >= 0.10), "相对领先 ≥0.10"),
+           ("ci95_lower_gt_baseline", lambda v: v is True, "CI 下界 > 基线"),
            ("splits_ok", lambda v: (v is not None and v >= 3), "≥3 切分")],
     "G2": [("event_hash_overlap", lambda v: v == 0, "事件级重叠=0"),
            ("content_hash_overlap", lambda v: v == 0, "内容级重叠=0")],
     "G3": [("required_samples", lambda v: v is not None, "已算所需样本")],
+    "G4": [("__whole__", _g4_controls_validated, "对照的对照")],
     "G5": [("__whole__", _g5_not_degenerate, "三个恰好自检")],
     "G6": [("__whole__", _g6_no_straddle, "CI 不跨线")],
+    "G8": [("__whole__", _g8_publish_ok, "发布判据")],
+    "G9": [("__whole__", _g9_pre_flight_ok, "动手前三问")],
     "G7": [("original", lambda v: bool(v), "写了原结论"),
            ("revised", lambda v: bool(v), "写了改后结论"),
            ("commands", lambda v: bool(v), "给了可执行命令"),
