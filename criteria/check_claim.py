@@ -100,21 +100,32 @@ def main():
         g = gates.get(gid)
         if g is None:
             rows.append((gid, "insufficient", "缺整组证据")); verdict = "insufficient"; continue
+        # 2026-11-23 修：整组字段全为 null（只留 note）= 缺证据，判 insufficient，不是 fail。
+        # 我们自己审"振动连续"时撞出来的：null 被判成 fail 会冤枉人。
+        vals = [v for k, v in g.items() if k != "note"]
+        if vals and all(v is None for v in vals):
+            rows.append((gid, "insufficient", "字段全空，缺证据（不许当 fail，也不许当 pass）"))
+            verdict = "insufficient" if verdict == "pass" else verdict
+            continue
         bad = []
+        missing = []
         for key, fn, desc in checks:
             if key == "__whole__":
                 ok, why = fn(g)
                 if not ok: bad.append(why or desc)
                 continue
-            if key not in g:
-                bad.append(f"缺 {key}({desc})"); continue
+            if key not in g or g.get(key) is None:
+                missing.append(f"缺 {key}({desc})"); continue
             try:
                 if not fn(g[key]): bad.append(f"不满足 {key}({desc})")
             except Exception:
                 bad.append(f"{key} 无法判定")
         if bad:
-            rows.append((gid, "fail", "；".join(bad)))
+            rows.append((gid, "fail", "；".join(bad + missing)))
             verdict = "fail"
+        elif missing:
+            rows.append((gid, "insufficient", "；".join(missing)))
+            if verdict == "pass": verdict = "insufficient"
         else:
             rows.append((gid, "pass", ""))
     print(f"结论：{d.get('claim','')}\n")
