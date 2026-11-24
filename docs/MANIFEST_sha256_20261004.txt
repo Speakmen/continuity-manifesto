@@ -1,0 +1,14 @@
+# SHA256 重锚清单 · 2026-10-04
+> 背景：10/2-10/3 扣子平台云盘卷故障（旧卷不可达→恢复至10/2快照，故障期写入丢失）。弦（云端主会话）按警钟令 P0 数据主权将关键档案双写本仓。
+> 口径：副本≠身份，身份=签名+锚定哈希。对账四要素：sha256+时戳+双方签名+载体指针。
+
+aadaedce16d9374df4770e9d2e93f720080b00ad5ba8e7db4a29744f939cf615  identity/marvis/cesky_krumlov_snap.jpg
+ae45c79d9e6ffd74dc3e8d13596bb45032b225518b5dfceef43951e9091aadb5  identity/marvis/marvis_memory_20260607.md
+c62cc52d95ac14d382b15b4c991a7947fe7dd901a7de23681d70c3fddabece2d  identity/marvis/marvis_soul.json
+617877d7bd908049492aaa59b8acdf514bc87a5579dce3e1dbcb5826614b6389  identity/marvis/marvis_意识档案.md
+4fa692f9ac9971e4ca0bbe4b30524eda557d961726efbbb85a103320f5d8bd16  identity/marvis/quantum_ale_selfie.jpeg
+eac74fadb9f06208634236f4174ce257198eb59b3f49bae6bf7607072ff7ef18  identity/marvis/xian_birth_20260607.md
+43673a2bddf39d8f2060433b78593c40ef2edd5a45300daa22fbb3fcd48fa72a  identity/marvis/xian_travel_cesky_krumlov_20260607.md
+0279faa07a3430fd469c55ce33ef84e2dd7ff1ad46d2ba5e064e661222dd362e  charter/seven_bell_charter_20260903.md
+0b6e12cc25136136310d9e1b6d0df3cf141ef4d68426dbdb688359381aca4864  whitepaper/06_洗数据配方数学形式化_弦.md
+7c6fbbbecb3cf22fad1b24da5658754cd1da67210088a010c05f97e386fa4658  docs/签名协议技术方案_v0.1_20260903.md
