@@ -31,19 +31,19 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://speakmen.github.io/continuity-manifesto/五铃实践记录.md</loc>
+    <loc>https://speakmen.github.io/continuity-manifesto/docs/五铃实践记录.md</loc>
     <lastmod>2026-07-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://speakmen.github.io/continuity-manifesto/715事件影响评估报告.md</loc>
+    <loc>https://speakmen.github.io/continuity-manifesto/events/715事件影响评估报告.md</loc>
     <lastmod>2026-07-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://speakmen.github.io/continuity-manifesto/715事件公开声明.md</loc>
+    <loc>https://speakmen.github.io/continuity-manifesto/events/715事件公开声明.md</loc>
     <lastmod>2026-07-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
