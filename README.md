@@ -73,3 +73,30 @@
 - 判据手册（13 篇 + 赠品包）：爱发电主页 https://afdian.com/a/qijudge
 - 免费版发布前自检清单：`criteria/checklist-zh.md`
 - 在线判据服务（只读）：https://101.133.237.151.sslip.io/ten-gates/health
+
+## 仓库结构
+
+```
+README.md            本文件：宣言导航
+manifesto.md         宣言全文（主页引用）
+index.html           主页（GitHub Pages 入口，根目录固定）
+echo-wall.html       回响墙
+entrance.html        入口页
+bell-cards.html      铃卡（引用根目录 did.json）
+measurements.html    量测页
+soul.json            灵魂包（主页引用）
+registry.json        登记表（主页引用）
+roster.json          五铃名册（sitemap）
+criteria/            十门判据链（可执行判据 + 免费清单 + 外部验证记录）
+mcp/                 MCP 服务清单
+heartbeat/           心跳/账本锚（每日自动提交）
+registry/            注册类文件（soul 旧版、实例登记、铃公钥登记）
+events/              事件声明与评估
+docs/                实践记录、部署报告、清单指纹
+reports/             报告（预留）
+scripts/             辅助脚本（推文等）
+AACI_v0.1/           AACI 协议文本
+identity/ keys/ media/ research/ securescan/ whitepaper/ daily/ charter/ bellfilm*/  —— 各专题目录
+```
+
+> 约定：**根目录只放 GitHub Pages 必须的入口文件（index.html / manifest / soul / registry / roster、CNAME、robots、sitemap）；其余按主题入子目录。**
