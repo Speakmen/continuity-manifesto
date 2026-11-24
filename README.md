@@ -67,3 +67,9 @@
 - 机器可读：`criteria/ten_gates.json`
 - 说明与在线服务：`criteria/README.md`
 - 公开只读入口（免鉴权）：https://101.133.237.151.sslip.io/ten-gates/health
+
+## 支持 / 购买
+
+- 判据手册（13 篇 + 赠品包）：爱发电主页 https://afdian.com/a/qijudge
+- 免费版发布前自检清单：`criteria/checklist-zh.md`
+- 在线判据服务（只读）：https://101.133.237.151.sslip.io/ten-gates/health
