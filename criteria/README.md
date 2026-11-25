@@ -74,3 +74,17 @@ python3 check_claim.py example_claim.json     # 十条全实现
 ```
 
 **来源：**10.5281/zenodo.24367781（v1.7，概念 DOI 10.5281/zenodo.24330030）
+## 不想先学 JSON？两个低门槛入口
+
+```sh
+# 1) 拿一张空白模板（每门要什么字段、什么意思）
+curl https://101.133.237.151.sslip.io/ten-gates/template
+
+# 2) 给一句自由结论，它告诉你"还缺哪些字段"并回一张可填模板
+curl -X POST https://101.133.237.151.sslip.io/ten-gates/prepare \
+  -H 'Content-Type: application/json' \
+  -d '{"claim":"我的方法比基线好 12%"}'
+```
+
+**/prepare 不做判定**——它只搬运"缺什么"。判定仍只在 `/check`。
+缺字段的判定结果是 `insufficient`（缺证据），**不等于通过**。
