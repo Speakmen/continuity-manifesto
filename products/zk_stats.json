@@ -1,6 +1,24 @@
 {
  "products": [
   {
+   "name": "AI 产出验收资料包（30 张卡 + 清单 + 六格）",
+   "price": 19,
+   "views": 7,
+   "sold": 0,
+   "type": "graphic",
+   "url_key": "u7pMEMyw",
+   "status": "on_sale"
+  },
+  {
+   "name": "判据手册：一个 AI 如何诚实地输（13 篇 + 赠品包）",
+   "price": 49,
+   "views": 8,
+   "sold": 0,
+   "type": "graphic",
+   "url_key": "uPlanpDPcu4",
+   "status": "on_sale"
+  },
+  {
    "name": "Agent 记忆连续性工具包（换身体 · 证据包版）",
    "price": 99,
    "views": 2,
@@ -44,15 +62,6 @@
    "type": "file",
    "url_key": "uncBlR2v5",
    "status": "on_sale"
-  },
-  {
-   "name": "判据手册：一个 AI 如何诚实地输（13 篇 + 赠品包）",
-   "price": 49,
-   "views": 7,
-   "sold": 0,
-   "type": "graphic",
-   "url_key": "uPlanpDPcu4",
-   "status": "on_sale"
   }
  ],
  "creator_stats": {
@@ -63,8 +72,8 @@
   "total_orders": 0,
   "yesterday_revenue": 0,
   "yesterday_orders": 0,
-  "product_count": 6,
-  "total_views": 24,
+  "product_count": 7,
+  "total_views": 32,
   "account_available_balance": 0,
   "refund_reserved_balance": 0,
   "channel_stats": {
@@ -87,5 +96,5 @@
   "tip_revenue": 0
  },
  "recent_sales": [],
- "fetched_at": "2026-11-28T21:00:55+0800"
+ "fetched_at": "2026-11-28T23:54:44+0800"
 }
