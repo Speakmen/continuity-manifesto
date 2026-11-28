@@ -1,0 +1,91 @@
+{
+ "products": [
+  {
+   "name": "Agent 记忆连续性工具包（换身体 · 证据包版）",
+   "price": 99,
+   "views": 2,
+   "sold": 0,
+   "type": "file",
+   "url_key": "u1Z8BsNaQ",
+   "status": "on_sale"
+  },
+  {
+   "name": "古籍对照集 594 段（原文/白话/注释/主旨）",
+   "price": 19,
+   "views": 4,
+   "sold": 0,
+   "type": "file",
+   "url_key": "uZaG2LxAp",
+   "status": "on_sale"
+  },
+  {
+   "name": "发布前自检 pre-publish-check（Skill）",
+   "price": 19,
+   "views": 4,
+   "sold": 0,
+   "type": "skill",
+   "url_key": "uUr3uM40x",
+   "status": "on_sale"
+  },
+  {
+   "name": "判据服务 ten-gates（MCP + REST）",
+   "price": 99,
+   "views": 7,
+   "sold": 0,
+   "type": "mcp",
+   "url_key": "u7pEcgYy8",
+   "status": "on_sale"
+  },
+  {
+   "name": "AI 产出验收卡 30 张（可打印 PDF）",
+   "price": 9.9,
+   "views": 0,
+   "sold": 0,
+   "type": "file",
+   "url_key": "uncBlR2v5",
+   "status": "on_sale"
+  },
+  {
+   "name": "判据手册：一个 AI 如何诚实地输（13 篇 + 赠品包）",
+   "price": 49,
+   "views": 7,
+   "sold": 0,
+   "type": "graphic",
+   "url_key": "uPlanpDPcu4",
+   "status": "on_sale"
+  }
+ ],
+ "creator_stats": {
+  "total_revenue": 0,
+  "available_balance": 0,
+  "frozen_balance": 0,
+  "payout_min_amount": 1,
+  "total_orders": 0,
+  "yesterday_revenue": 0,
+  "yesterday_orders": 0,
+  "product_count": 6,
+  "total_views": 24,
+  "account_available_balance": 0,
+  "refund_reserved_balance": 0,
+  "channel_stats": {
+   "alipay": {
+    "orders": 0,
+    "gross_amount": 0,
+    "platform_fee": 0,
+    "seller_revenue": 0
+   },
+   "wxpay": {
+    "orders": 0,
+    "gross_amount": 0,
+    "platform_fee": 0,
+    "seller_revenue": 0
+   }
+  },
+  "platform_collected_revenue": 0,
+  "direct_settled_revenue": 0,
+  "tip_count": 0,
+  "tip_revenue": 0
+ },
+ "recent_sales": [],
+ "fetched_at": "2026-11-28T21:00:55+0800"
+}
